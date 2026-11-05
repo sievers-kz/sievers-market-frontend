@@ -1,0 +1,59 @@
+@AGENTS.md
+
+# Sievers Market — frontend
+
+Витрина B2B-маркетплейса сельхозтехники и оборудования (Казахстан). Бэкенд: FastAPI (`sievers-market-backend`), отдельный сервис IAM. Проект ведёт один разработчик; работа идёт короткими ветками по одному экрану.
+
+## Стек
+Next.js (App Router), TypeScript strict, Tailwind CSS 4, shadcn/ui, react-hook-form + Zod, Zustand, нативный `fetch`. Деплой: Vercel.
+**Не использовать:** Axios, `any`, FSD-слои, новые библиотеки без согласования (сначала спроси).
+
+## Команды
+- `npm run dev` — разработка
+- `npm run typecheck` · `npm run lint` · `npm run build` — **все три должны проходить перед коммитом**
+- `npm run gen:api` — пересоздать `src/lib/api/schema.d.ts` из OpenAPI бэкенда (`OPENAPI_URL=... npm run gen:api` для другого адреса)
+
+## Структура
+```
+src/app/              маршруты и layout; только точки входа, без тяжёлой логики
+src/components/ui/    shadcn-примитивы (добавлять через `npx shadcn add`)
+src/components/layout/ Container, шапка, подвал
+src/components/<area>/ компоненты по областям: catalog, listing, account, auth…
+src/lib/api/          весь доступ к бэкенду (см. ниже)
+src/lib/              утилиты (cn и т.д.)
+src/hooks/            клиентские хуки
+src/stores/           Zustand (только UI-состояние)
+docs/pages/           спецификации экранов — читай перед работой над экраном
+```
+Алиас `@/` указывает на `src/`. Именованные экспорты, один компонент на файл.
+
+## API
+- Типы **только** из `src/lib/api/schema.d.ts` (генерируется). Ручные копии типов ответов запрещены.
+- Любой запрос идёт через `apiFetch` из `@/lib/api`: он сам добавляет `X-Client-Type: web`, `credentials: "include"`, на сервере пробрасывает cookie, в браузере делает single-flight refresh при 401. Прямой `fetch` к нашему API запрещён.
+- Функции запросов называй по `operationId` из OpenAPI (`getMe`, `loginUser`, `createListing`…), клади в `src/lib/api/<домен>.ts`.
+- Авторизация — httpOnly cookie. Токены из тела ответов **не читать**, не хранить в JS, `localStorage`, Zustand.
+- Ошибки: `ApiError` (`status`, `errorCode`, `message`, `fieldErrors`). Бэкенд присылает два формата: `{ error_code, message }` и стандартный 422 `{ detail: [{ loc, msg }] }`. В формах используй `applyApiErrorToForm`; для бизнес-ошибок передай `byErrorCode` (например `invalid_otp_code_error` → поле кода). Ошибки без поля показывай сообщением формы.
+- Zod-схемы форм должны повторять DTO из OpenAPI (обязательность, ограничения).
+- Загрузка файлов: `generateUploadUrl` → `uploadToPresignedUrl` (PUT напрямую в MinIO) → `confirmUpload`.
+- Пользователь: получай через единую функцию `getCurrentUser()` (когда появится в `lib/api/auth`). Не угадывай роль по косвенным признакам. `/me` возвращает union по `role`: `customer`, `vendor` или нет роли (онбординг не пройден).
+- Справочные данные (дерево категорий `getCategoryTree`, города, бренды) читаются на сервере с `next: { revalidate }`. В Zustand их не копируй.
+
+## Дизайн
+- Шрифт Inter, цвета только через токены из `globals.css`: `primary` (#076852), `cta` (#D79D2F). Не пиши hex в компонентах.
+- Сетка 8pt: отступы и размеры — 4, 8, 16, 24, 32, 40, 48, 56, 64… (`p-1/2/4/6/8/10/12/14/16`). Запрещены `p-3`, `m-5`, `gap-[13px]` и подобное.
+- Контент страниц — внутри `<Container>` (максимум 1280px).
+- Макеты в Figma — источник истины по виду. Если макет расходится с сеткой 8pt, **придерживайся сетки** и отметь отклонение в описании PR.
+- Адаптивность: mobile-first.
+
+## Код
+- Server Components по умолчанию; `"use client"` только там, где нужны состояние, эффекты или обработчики.
+- Zustand: состояние создаётся внутри клиентских компонентов/провайдеров, без доступа к `window` при инициализации (иначе SSR-гидрация ломается).
+- Для страниц: `loading.tsx` и `error.tsx` на каждый значимый маршрут, `notFound()` для 404.
+- Тексты интерфейса — на русском.
+
+## Рабочий процесс
+- Ветки: `main` (production), `dev` (staging). Фича — отдельная ветка от `dev` (`feature/<экран>`), PR в `dev`.
+- Один PR — один экран или одна тема. В описании PR: что сделано, что отличается от макета, что не успел.
+- Перед PR: `typecheck`, `lint`, `build`.
+- Секреты и `.env*` не коммитить; пример — `.env.example`.
+- Если спецификация экрана неполная или бэкенд ведёт себя иначе, чем в OpenAPI, — остановись и опиши расхождение в PR, не придумывай.

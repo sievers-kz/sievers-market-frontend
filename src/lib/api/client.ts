@@ -1,6 +1,7 @@
 import { ApiError } from "./error";
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+/** Только для сервера. В браузере переменной нет: запросы идут через rewrite из next.config. */
+const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:8000";
 
 const REFRESH_PATH = "/api/v1/iam/refresh";
 
@@ -26,7 +27,9 @@ export interface RequestOptions {
 const isServer = typeof window === "undefined";
 
 function buildUrl(path: string, query?: RequestOptions["query"]): string {
-  const url = new URL(`${API_URL}${path}`);
+  // В браузере тот же origin: cookie сессии живут на домене фронтенда.
+  const base = isServer ? BACKEND_URL : window.location.origin;
+  const url = new URL(`${base}${path}`);
   for (const [key, value] of Object.entries(query ?? {})) {
     if (value !== undefined && value !== null) {
       url.searchParams.set(key, String(value));

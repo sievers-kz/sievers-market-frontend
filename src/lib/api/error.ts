@@ -17,8 +17,9 @@ interface ErrorBody {
 }
 
 /**
- * Единая ошибка API. Бэкенд возвращает два формата:
+ * Единая ошибка API. Бэкенд возвращает три формата:
  *  - бизнес-ошибки: `{ error_code, message }`;
+ *  - ошибки без кода: `{ detail: "строка" }`;
  *  - стандартная валидация 422: `{ detail: [{ loc, msg, type }] }`.
  */
 export class ApiError extends Error {
@@ -40,20 +41,21 @@ export class ApiError extends Error {
   }
 
   static async fromResponse(response: Response): Promise<ApiError> {
-    const body = (await response.json().catch(() => ({}))) as ErrorBody;
+    const body = ((await response.json().catch(() => null)) ?? {}) as ErrorBody;
 
     const fieldErrors = Array.isArray(body.detail)
       ? (body.detail as ValidationDetailItem[]).flatMap((item) => {
           const field = item.loc?.at(-1);
           return field === undefined
             ? []
-            : [{ field: String(field), message: item.msg ?? "" }];
+            : [{ field: String(field), message: item.msg || "Проверьте поле" }];
         })
       : [];
 
     return new ApiError(
       response.status,
-      body.message ?? "Неизвестная ошибка",
+      body.message ??
+        (typeof body.detail === "string" ? body.detail : "Неизвестная ошибка"),
       body.error_code,
       fieldErrors,
     );

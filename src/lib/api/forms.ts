@@ -7,6 +7,8 @@ const GENERIC_ERROR_MESSAGE = "Что-то пошло не так, попроб�
 interface MapOptions<T extends FieldValues> {
   /** Какое поле формы подсвечивать для бизнес-ошибки (`error_code`). */
   byErrorCode?: Record<string, Path<T>>;
+  /** Поля этой формы. Ошибку другого поля негде показать: она уйдёт в сообщение формы. */
+  fields?: readonly Path<T>[];
 }
 
 /**
@@ -17,11 +19,12 @@ interface MapOptions<T extends FieldValues> {
 export function applyApiErrorToForm<T extends FieldValues>(
   error: ApiError,
   setError: UseFormSetError<T>,
-  { byErrorCode = {} }: MapOptions<T> = {},
+  { byErrorCode = {}, fields }: MapOptions<T> = {},
 ): boolean {
   let applied = false;
 
   for (const { field, message } of error.fieldErrors) {
+    if (fields && !fields.includes(field as Path<T>)) continue;
     setError(field as Path<T>, { type: "server", message }, { shouldFocus: !applied });
     applied = true;
   }

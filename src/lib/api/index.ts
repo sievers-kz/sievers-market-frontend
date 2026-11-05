@@ -13,6 +13,9 @@ export {
   resendConfirmationCode,
 } from "./auth";
 export type { CurrentUser } from "./auth";
+export { createCustomer } from "./customer";
+export { createVendor, verifyTaxpayer } from "./vendor";
+export type { LegalForm, Taxpayer } from "./vendor";
 export { ERROR_CODES } from "./error-codes";
 export { uploadToPresignedUrl } from "./upload";
 export { findCategory, getCategoryTree } from "./catalog";

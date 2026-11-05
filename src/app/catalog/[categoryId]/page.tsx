@@ -59,7 +59,7 @@ export default async function CatalogPage({
         />
         <h1 className="text-2xl font-semibold lg:text-3xl">{category.name}</h1>
 
-        <div className="grid items-start gap-6 lg:grid-cols-[304px_minmax(0,1fr)]">
+        <div className="grid items-start gap-4 lg:grid-cols-[304px_minmax(0,1fr)]">
           <SubcategoryNav
             categoryId={category.id}
             subcategories={category.subcategories}

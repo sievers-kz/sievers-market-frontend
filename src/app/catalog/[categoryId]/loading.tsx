@@ -9,7 +9,7 @@ export default function CatalogLoading() {
         <Skeleton className="h-4 w-64 bg-card" />
         <Skeleton className="h-8 w-48 bg-card" />
 
-        <div className="grid items-start gap-6 lg:grid-cols-[304px_minmax(0,1fr)]">
+        <div className="grid items-start gap-4 lg:grid-cols-[304px_minmax(0,1fr)]">
           <Skeleton className="h-14 rounded-2xl bg-card lg:h-64" />
 
           <div className="flex flex-col gap-6">

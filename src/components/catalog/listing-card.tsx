@@ -27,10 +27,11 @@ export function ListingCard({ listing, view }: ListingCardProps) {
         isList ? "flex-col sm:flex-row" : "flex-col",
       )}
     >
+      {/* Плитка: 16/9. Список (с sm): фиксированная ширина, высота — по карточке. */}
       <div
         className={cn(
-          "relative aspect-[4/3] shrink-0 bg-muted",
-          isList && "sm:w-64",
+          "relative aspect-video shrink-0 bg-muted",
+          isList && "sm:aspect-auto sm:min-h-40 sm:w-64 sm:self-stretch",
         )}
       >
         {listing.preview_image ? (
@@ -52,19 +53,25 @@ export function ListingCard({ listing, view }: ListingCardProps) {
         )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 p-4">
-        <h3 className="line-clamp-2 font-medium group-hover:text-primary">
+      <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
+        <h3
+          className="truncate font-medium group-hover:text-primary"
+          title={listing.title}
+        >
           {listing.title}
         </h3>
-        <p className="text-sm text-muted-foreground">
+        <p
+          className="truncate text-sm text-muted-foreground"
+          title={listing.display_owner_name}
+        >
           {listing.display_owner_name}
         </p>
         <p className="mt-auto pt-2 text-lg font-semibold">
           {formatPrice(listing.price, listing.currency)}
         </p>
-        <p className="flex items-center gap-1 text-sm text-muted-foreground">
+        <p className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground">
           <MapPin className="size-4 shrink-0" aria-hidden />
-          {listing.city}
+          <span className="truncate">{listing.city}</span>
         </p>
       </div>
     </Link>

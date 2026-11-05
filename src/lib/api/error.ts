@@ -14,11 +14,12 @@ interface ErrorBody {
   error_code?: string;
   message?: string;
   detail?: unknown;
+  metadata?: { field?: unknown } | null;
 }
 
 /**
  * Единая ошибка API. Бэкенд возвращает три формата:
- *  - бизнес-ошибки: `{ error_code, message }`;
+ *  - бизнес-ошибки: `{ error_code, message, metadata? }`, `metadata.field` это имя поля запроса;
  *  - ошибки без кода: `{ detail: "строка" }`;
  *  - стандартная валидация 422: `{ detail: [{ loc, msg, type }] }`.
  */
@@ -52,13 +53,15 @@ export class ApiError extends Error {
         })
       : [];
 
-    return new ApiError(
-      response.status,
+    const message =
       body.message ??
-        (typeof body.detail === "string" ? body.detail : "Неизвестная ошибка"),
-      body.error_code,
-      fieldErrors,
-    );
+      (typeof body.detail === "string" ? body.detail : "Неизвестная ошибка");
+
+    if (typeof body.metadata?.field === "string") {
+      fieldErrors.push({ field: body.metadata.field, message });
+    }
+
+    return new ApiError(response.status, message, body.error_code, fieldErrors);
   }
 }
 

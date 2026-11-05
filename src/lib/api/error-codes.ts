@@ -9,4 +9,12 @@ export const ERROR_CODES = {
   invalidOtpCode: "invalid_otp_code_error",
   otpCooldown: "otp_cooldown_error",
   invalidLoginCredentials: "invalid_login_credentials_error",
+  taxpayerNotFound: "taxpayer_not_found_error",
+  taxpayerOnLiquidation: "taxpayer_on_liquidation_error",
+  vendorAlreadyExists: "vendor_already_exists_error",
+  invalidTaxNumber: "invalid_tax_number_error",
+  fullnameRequired: "fullname_required_error",
+  invalidFullnameFormat: "invalid_fullname_format_error",
+  contactFullnameRequired: "contact_fullname_required_error",
+  contactFullnameFormat: "contact_fullname_format_error",
 } as const;

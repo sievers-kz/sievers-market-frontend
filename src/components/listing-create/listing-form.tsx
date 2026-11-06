@@ -40,7 +40,7 @@ import {
   type ListingFormValues,
 } from "./listing-schema";
 import { SelectField } from "./select-field";
-import { useImageUploads } from "./use-image-uploads";
+import type { ImageUploads } from "./use-image-uploads";
 
 type FieldName = Path<ListingFormValues>;
 
@@ -62,6 +62,8 @@ interface ListingFormProps {
   groups: AttributeGroup[];
   cities: readonly { id: string; name: string }[];
   references: ReferenceSources;
+  /** Фото принадлежат странице, а не форме: переживают смену подкатегории. */
+  uploads: ImageUploads;
 }
 
 export function ListingForm({
@@ -70,9 +72,9 @@ export function ListingForm({
   groups,
   cities,
   references,
+  uploads,
 }: ListingFormProps) {
   const router = useRouter();
-  const uploads = useImageUploads();
   const [published, setPublished] = useState(false);
 
   const schema = useMemo(() => buildListingSchema(groups, references), [groups, references]);
@@ -353,15 +355,16 @@ export function ListingForm({
         <FormMessage message={errors.root?.message} />
 
         <div className="flex flex-col gap-2">
+          {/* Без блокировки по заполненности: ошибки показываются по нажатию. */}
           <Button
             type="submit"
-          size="lg"
-          className="w-full bg-cta text-cta-foreground hover:bg-cta/90"
-          disabled={pending || uploads.isUploading}
-          aria-busy={pending}
-        >
-          {pending && <LoaderCircle className="animate-spin" aria-hidden />}
-          {pending ? "Публикация…" : "Опубликовать"}
+            size="lg"
+            className="w-full bg-cta text-cta-foreground hover:bg-cta/90"
+            disabled={pending || uploads.isUploading}
+            aria-busy={pending}
+          >
+            {pending && <LoaderCircle className="animate-spin" aria-hidden />}
+            {pending ? "Публикация…" : "Опубликовать"}
           </Button>
           {uploads.isUploading && !pending && (
             <p className="text-center text-sm text-muted-foreground">

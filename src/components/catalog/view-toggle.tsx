@@ -32,7 +32,7 @@ export function ViewToggle({ categoryId, params }: ViewToggleProps) {
             aria-current={isActive ? "true" : undefined}
             title={label}
             className={cn(
-              "flex size-8 items-center justify-center rounded-md transition-colors",
+              "flex size-10 items-center justify-center rounded-md transition-colors",
               isActive
                 ? "bg-primary text-primary-foreground"
                 : "text-muted-foreground hover:bg-muted",

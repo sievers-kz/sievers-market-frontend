@@ -13,7 +13,7 @@
 `ListingDetailResponse`: `id`, `owner_id`, `contact_phone` (может быть `null`), `display_owner_name`, `subcategory` (название), `title`, `price`, `currency`, `city`, `description` (может быть `null`), `gallery` (массив uuid медиа), `attributes` (словарь произвольных значений).
 
 - Бэкенд отдаёт только активные объявления. Любое другое (нет такого, снято, архив) приходит как 404 `ListingNotFoundError` → `notFound()`. Невалидный uuid в адресе (422) тоже → `notFound()`.
-- `generateMetadata`: заголовок страницы `<title>объявления> · Sievers Market`, описание берётся из первых 160 символов `description`.
+- `generateMetadata`: заголовок страницы «название объявления · Sievers Market», описание берётся из первых 160 символов `description`.
 
 ## Раскладка
 Всё внутри `Container`, фон страницы и блоки как в каталоге (светло-серый фон, белые блоки с крупным скруглением).

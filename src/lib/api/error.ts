@@ -2,6 +2,8 @@
 export interface FieldError {
   /** Имя поля (последний элемент `loc`). */
   field: string;
+  /** Полный путь без префикса `body`, через точку: `attributes.engine_power`, `gallery.0.media_id`. */
+  path: string;
   message: string;
 }
 
@@ -47,9 +49,10 @@ export class ApiError extends Error {
     const fieldErrors = Array.isArray(body.detail)
       ? (body.detail as ValidationDetailItem[]).flatMap((item) => {
           const field = item.loc?.at(-1);
-          return field === undefined
-            ? []
-            : [{ field: String(field), message: item.msg || "Проверьте поле" }];
+          if (field === undefined) return [];
+          const loc = item.loc ?? [];
+          const path = (loc[0] === "body" ? loc.slice(1) : loc).join(".");
+          return [{ field: String(field), path, message: item.msg || "Проверьте поле" }];
         })
       : [];
 
@@ -58,7 +61,7 @@ export class ApiError extends Error {
       (typeof body.detail === "string" ? body.detail : "Неизвестная ошибка");
 
     if (typeof body.metadata?.field === "string") {
-      fieldErrors.push({ field: body.metadata.field, message });
+      fieldErrors.push({ field: body.metadata.field, path: body.metadata.field, message });
     }
 
     return new ApiError(response.status, message, body.error_code, fieldErrors);

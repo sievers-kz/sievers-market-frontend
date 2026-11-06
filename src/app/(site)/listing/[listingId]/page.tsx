@@ -8,6 +8,7 @@ import { ListingBreadcrumbs } from "@/components/listing/listing-breadcrumbs";
 import { ListingDescription } from "@/components/listing/listing-description";
 import { ListingGallery } from "@/components/listing/listing-gallery";
 import { ListingSummaryCard } from "@/components/listing/listing-summary-card";
+import { ListingTitleCard } from "@/components/listing/listing-title-card";
 import { SellerCard } from "@/components/listing/seller-card";
 import { getListingDetails, isApiError } from "@/lib/api";
 
@@ -58,9 +59,11 @@ export default async function ListingPage({
     <main className="flex-1 bg-muted py-8">
       <Container className="flex flex-col gap-6">
         <ListingBreadcrumbs subcategoryName={listing.subcategory} />
-        <h1 className="text-2xl font-semibold break-words lg:text-3xl">
-          {listing.title}
-        </h1>
+        <ListingTitleCard
+          subcategory={listing.subcategory}
+          title={listing.title}
+          city={listing.city}
+        />
 
         {/* Телефон: галерея → карточка → продавец → характеристики → описание (через order).
             С lg: слева галерея, характеристики, описание; справа липкая колонка. */}
@@ -85,8 +88,6 @@ export default async function ListingPage({
 
           <aside className="order-2 flex flex-col gap-4 lg:sticky lg:top-8">
             <ListingSummaryCard
-              subcategory={listing.subcategory}
-              city={listing.city}
               price={listing.price}
               currency={listing.currency}
             />

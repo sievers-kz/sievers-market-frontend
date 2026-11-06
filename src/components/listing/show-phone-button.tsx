@@ -38,7 +38,7 @@ export function ShowPhoneButton({ listingId }: ShowPhoneButtonProps) {
     return (
       <a
         href={`tel:${state.phone.replace(/[^\d+]/g, "")}`}
-        className="flex h-12 w-full items-center justify-center gap-2 rounded-md border border-contact text-lg font-semibold text-foreground transition-colors hover:bg-contact/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        className="flex h-12 w-full items-center justify-center gap-2 rounded-md border border-cta text-lg font-semibold text-foreground transition-colors hover:bg-cta/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       >
         <Phone className="size-4" aria-hidden />
         {state.phone}
@@ -53,7 +53,7 @@ export function ShowPhoneButton({ listingId }: ShowPhoneButtonProps) {
         size="lg"
         onClick={handleClick}
         disabled={state.status === "loading"}
-        className="w-full bg-contact text-contact-foreground hover:bg-contact/90"
+        className="w-full bg-cta text-cta-foreground hover:bg-cta/90"
       >
         <Phone aria-hidden />
         {state.status === "loading" ? "Загружаем…" : "Контакты"}

@@ -24,9 +24,8 @@ export function SellerCard({ listingId, name, hasPhone }: SellerCardProps) {
         </div>
         <div className="flex min-w-0 flex-col">
           <p className="text-sm text-muted-foreground">Продавец</p>
-          <p className="truncate font-medium" title={name}>
-            {name}
-          </p>
+          {/* Длинное имя переносится по словам, без обрезки. */}
+          <p className="font-medium break-words">{name}</p>
         </div>
       </div>
       {hasPhone && <ShowPhoneButton listingId={listingId} />}

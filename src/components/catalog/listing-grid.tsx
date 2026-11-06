@@ -15,7 +15,7 @@ export function ListingGrid({ listings, view }: ListingGridProps) {
   return (
     <ul
       className={cn(
-        "grid gap-4",
+        "grid grid-cols-1 gap-4",
         view === "grid" && "sm:grid-cols-2 lg:grid-cols-3",
       )}
     >

@@ -23,7 +23,7 @@ export function ListingCard({ listing, view }: ListingCardProps) {
     <Link
       href={`/listing/${listing.id}`}
       className={cn(
-        "group flex w-full overflow-hidden rounded-2xl bg-card text-card-foreground transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+        "group flex w-full min-w-0 overflow-hidden rounded-2xl bg-card text-card-foreground transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
         isList ? "flex-col sm:flex-row" : "flex-col",
       )}
     >

@@ -13,9 +13,14 @@ import {
   type AttributeField,
   type ListingFormValues,
 } from "./listing-schema";
+import { parseHexColor } from "./parse-hex-color";
 import { SelectField, type SelectOption } from "./select-field";
 
-export type ReferenceSources = Record<string, readonly { id: string; name: string }[]>;
+/** `hex` есть только у справочника цветов (`ColorResponse`). */
+export type ReferenceSources = Record<
+  string,
+  readonly { id: string; name: string; hex?: string }[]
+>;
 
 interface AttributeFieldInputProps {
   field: AttributeField;
@@ -68,7 +73,11 @@ export function AttributeFieldInput({ field, references }: AttributeFieldInputPr
     const options: SelectOption[] =
       field.type === "enumerate"
         ? parseOptions(field.options).map((option) => ({ value: option.key, label: option.label }))
-        : (source ?? []).map((item) => ({ value: item.id, label: item.name }));
+        : (source ?? []).map((item) => ({
+            value: item.id,
+            label: item.name,
+            swatch: field.source === "color" ? parseHexColor(item.hex) : undefined,
+          }));
     const unavailable = field.type === "reference" && !source;
 
     return (

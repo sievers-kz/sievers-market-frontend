@@ -9,7 +9,10 @@ interface ListingDescriptionProps {
   className?: string;
 }
 
-/** Текст длиннее 8 строк сворачивается; длину меряем по факту вёрстки. */
+/**
+ * Текст длиннее 6 строк сворачивается. Переполнение меряем по факту вёрстки
+ * (`scrollHeight > clientHeight`), а не по длине строки. Высоту блока не задаём.
+ */
 export function ListingDescription({ text, className }: ListingDescriptionProps) {
   const ref = useRef<HTMLParagraphElement>(null);
   const [expanded, setExpanded] = useState(false);
@@ -35,7 +38,7 @@ export function ListingDescription({ text, className }: ListingDescriptionProps)
         ref={ref}
         className={cn(
           "break-words whitespace-pre-line",
-          !expanded && "line-clamp-8",
+          !expanded && "line-clamp-6",
         )}
       >
         {text}
@@ -47,7 +50,7 @@ export function ListingDescription({ text, className }: ListingDescriptionProps)
           aria-expanded={expanded}
           className="self-start text-sm font-medium text-primary hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         >
-          {expanded ? "Свернуть" : "Показать полностью"}
+          {expanded ? "Свернуть" : "Показать больше"}
         </button>
       )}
     </section>

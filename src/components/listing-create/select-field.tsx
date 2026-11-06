@@ -16,6 +16,8 @@ const NONE = "__none__";
 export interface SelectOption {
   value: string;
   label: string;
+  /** Цвет образца перед названием (уже проверенный hex). */
+  swatch?: string;
 }
 
 interface SelectFieldProps {
@@ -68,7 +70,15 @@ export function SelectField({
       <SelectContent position="popper">
         {allowEmpty && <SelectItem value={NONE}>Не указано</SelectItem>}
         {options.map((option) => (
+          // Образец внутри ItemText: Radix повторяет его и в выбранном значении.
           <SelectItem key={option.value} value={option.value}>
+            {option.swatch && (
+              <span
+                aria-hidden
+                className="size-4 shrink-0 rounded-sm border border-foreground/20"
+                style={{ backgroundColor: option.swatch }}
+              />
+            )}
             {option.label}
           </SelectItem>
         ))}

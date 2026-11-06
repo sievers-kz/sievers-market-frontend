@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -42,6 +42,15 @@ export function RegisterForm({ onRegistered }: { onRegistered: (email: string) =
       consent_personal_data: false,
     },
   });
+
+  // Кнопка активна, когда заполнены обязательные поля и дано согласие на обработку данных.
+  // Правила (формат email, длина пароля) проверяет схема при отправке.
+  const [email, password, passwordRepeat, consentPersonalData] = useWatch({
+    control,
+    name: ["email", "raw_password", "password_repeat", "consent_personal_data"],
+  });
+  const canSubmit =
+    email.trim() !== "" && password !== "" && passwordRepeat !== "" && consentPersonalData;
 
   async function onSubmit({ email, raw_password }: RegisterValues) {
     try {
@@ -142,7 +151,9 @@ export function RegisterForm({ onRegistered }: { onRegistered: (email: string) =
         />
 
         <FormMessage message={errors.root?.message} />
-        <SubmitButton pending={isSubmitting}>Зарегистрироваться</SubmitButton>
+        <SubmitButton pending={isSubmitting} disabled={!canSubmit}>
+          Зарегистрироваться
+        </SubmitButton>
         <p className="text-center text-sm text-muted-foreground">
           Уже есть аккаунт?{" "}
           <Link href="/login" className="text-primary hover:underline">

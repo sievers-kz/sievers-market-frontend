@@ -12,6 +12,7 @@ import { FormSectionsSkeleton } from "./form-sections-skeleton";
 import { ListingForm } from "./listing-form";
 import { ListingHints } from "./listing-hints";
 import { sortGroups, type AttributeGroup } from "./listing-schema";
+import { useImageUploads } from "./use-image-uploads";
 
 type Rubric = components["schemas"]["RubricResponse"];
 
@@ -31,6 +32,8 @@ export function ListingCreateFlow({ tree, cities, references }: ListingCreateDat
   const [selection, setSelection] = useState<CatalogSelection>(EMPTY_SELECTION);
   const [formState, setFormState] = useState<FormState>({ status: "idle" });
   const requestRef = useRef<AbortController | null>(null);
+  // Выше формы: смена подкатегории пересоздаёт форму, но не трогает загруженные фото.
+  const uploads = useImageUploads();
 
   function loadForm(subcategoryId: string) {
     requestRef.current?.abort();
@@ -82,7 +85,7 @@ export function ListingCreateFlow({ tree, cities, references }: ListingCreateDat
             </div>
           )}
           {formState.status === "ready" && (
-            // key: смена подкатегории начинает форму заново.
+            // key: смена подкатегории начинает форму заново (кроме фото).
             <ListingForm
               key={selection.subcategoryId}
               categoryId={selection.categoryId}
@@ -90,6 +93,7 @@ export function ListingCreateFlow({ tree, cities, references }: ListingCreateDat
               groups={formState.groups}
               cities={cities}
               references={references}
+              uploads={uploads}
             />
           )}
         </div>

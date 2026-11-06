@@ -51,8 +51,11 @@ async function uploadFile(file: File, mediaType: MediaType): Promise<ListingImag
   return { media_id: media.media_id, media_type: media.media_type, media_size: media.media_size };
 }
 
+export type ImageUploads = ReturnType<typeof useImageUploads>;
+
 /**
- * Список фото объявления: загрузка начинается сразу при добавлении,
+ * Список фото объявления. Живёт в `ListingCreateFlow`, а не в форме: смена подкатегории
+ * пересоздаёт форму, а загруженные фото остаются. загрузка начинается сразу при добавлении,
  * превью локальные (`blob:`), ссылки освобождаются при удалении и уходе со страницы.
  */
 export function useImageUploads() {

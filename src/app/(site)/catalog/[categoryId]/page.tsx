@@ -1,18 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { CatalogBreadcrumbs } from "@/components/catalog/catalog-breadcrumbs";
-import { CatalogEmpty } from "@/components/catalog/catalog-empty";
-import { CatalogPagination } from "@/components/catalog/catalog-pagination";
-import { ListingGrid } from "@/components/catalog/listing-grid";
-import { parseCatalogParams } from "@/components/catalog/search-params";
+import { CatalogListings } from "@/components/catalog/catalog-listings";
+import { CatalogListingsSkeleton } from "@/components/catalog/catalog-listings-skeleton";
+import { buildCatalogHref, parseCatalogParams } from "@/components/catalog/search-params";
 import { SubcategoryNav } from "@/components/catalog/subcategory-nav";
-import { ViewToggle } from "@/components/catalog/view-toggle";
 import { Container } from "@/components/layout/container";
-import { findCategory, getCategoryTree, getListingsCatalog } from "@/lib/api";
-
-/** 12 делится на 3 колонки плитки. */
-const PAGE_SIZE = 12;
+import { findCategory, getCategoryTree } from "@/lib/api";
 
 export async function generateMetadata({
   params,
@@ -41,15 +37,6 @@ export default async function CatalogPage({
     notFound();
   }
 
-  const listings = await getListingsCatalog({
-    category_id: category.id,
-    subcategory_id: catalogParams.subcategoryId,
-    page: catalogParams.page,
-    limit: PAGE_SIZE,
-  });
-
-  if (catalogParams.page > Math.max(listings.pages, 1)) notFound();
-
   return (
     <main className="flex-1 bg-muted py-8">
       <Container className="flex flex-col gap-6">
@@ -59,32 +46,23 @@ export default async function CatalogPage({
         />
         <h1 className="text-2xl font-semibold lg:text-3xl">{category.name}</h1>
 
-        <div className="grid items-start gap-4 lg:grid-cols-[304px_minmax(0,1fr)]">
+        <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-[304px_minmax(0,1fr)]">
           <SubcategoryNav
             categoryId={category.id}
             subcategories={category.subcategories}
             params={catalogParams}
           />
 
-          <section aria-label="Объявления" className="flex flex-col gap-6">
-            <div className="flex items-center justify-between gap-4">
-              <p className="text-sm text-muted-foreground">
-                Найдено объявлений: {listings.total}
-              </p>
-              <ViewToggle categoryId={category.id} params={catalogParams} />
-            </div>
-
-            {listings.items.length > 0 ? (
-              <ListingGrid listings={listings.items} view={catalogParams.view} />
-            ) : (
-              <CatalogEmpty />
-            )}
-
-            <CatalogPagination
-              categoryId={category.id}
-              params={catalogParams}
-              pages={listings.pages}
-            />
+          <section aria-label="Объявления" className="flex min-w-0 flex-col gap-4">
+            {/* loading.tsx на смену searchParams не срабатывает: граница loading
+                привязана к сегменту [categoryId], а не к параметрам. Новый key
+                монтирует новую границу, и она показывает скелетон. */}
+            <Suspense
+              key={buildCatalogHref(category.id, catalogParams)}
+              fallback={<CatalogListingsSkeleton categoryId={category.id} params={catalogParams} />}
+            >
+              <CatalogListings categoryId={category.id} params={catalogParams} />
+            </Suspense>
           </section>
         </div>
       </Container>

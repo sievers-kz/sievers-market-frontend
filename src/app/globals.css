@@ -3,7 +3,8 @@
 
 /*
  * Токены темы. Источник значений: Figma + правила проекта.
- * Бренд: #076852. Акцент для CTA: #D79D2F.
+ * Бренд (primary): #076852: шапка, ссылки, фокус, выбранные состояния.
+ * Главные действия (cta): #1C608A, белый текст (контраст около 6.8:1).
  * Отступы: только по сетке 8pt (4, 8, 16, 24, 32, 40, 48, 56, 64…).
  */
 :root {
@@ -19,11 +20,8 @@
   --primary: #076852;
   --primary-foreground: #ffffff;
 
-  --cta: #d79d2f;
-  --cta-foreground: #171717;
-  /* Кнопка «Контакты» на странице объявления. */
-  --contact: #1c608a;
-  --contact-foreground: #ffffff;
+  --cta: #1c608a;
+  --cta-foreground: #ffffff;
 
   --secondary: #f3f4f6;
   --secondary-foreground: #171717;
@@ -54,8 +52,6 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-cta: var(--cta);
   --color-cta-foreground: var(--cta-foreground);
-  --color-contact: var(--contact);
-  --color-contact-foreground: var(--contact-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -73,6 +69,17 @@
   --radius-xl: calc(var(--radius) + 4px);
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* Блик скелетона: проходит слева направо (компонент Skeleton). */
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+  @keyframes shimmer {
+    from {
+      transform: translateX(-100%);
+    }
+    to {
+      transform: translateX(100%);
+    }
+  }
 }
 
 @layer base {
@@ -81,5 +88,18 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  /* В Tailwind 4 у кнопок стрелка: возвращаем руку всем интерактивным элементам. */
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  summary,
+  select:not(:disabled) {
+    cursor: pointer;
+  }
+  button:disabled,
+  select:disabled,
+  [role="button"][aria-disabled="true"] {
+    cursor: not-allowed;
   }
 }

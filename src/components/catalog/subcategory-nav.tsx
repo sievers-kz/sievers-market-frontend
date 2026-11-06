@@ -28,9 +28,9 @@ export function SubcategoryNav({
   ];
 
   return (
-    <nav aria-label="Подкатегории" className="rounded-2xl bg-card p-2 lg:p-4">
+    <nav aria-label="Категории" className="rounded-2xl bg-card p-2 lg:p-4">
       <h2 className="sr-only lg:not-sr-only lg:mb-2 lg:px-2 lg:text-lg lg:font-semibold">
-        Подкатегории
+        Категории
       </h2>
       <ul className="flex gap-2 overflow-x-auto lg:flex-col lg:gap-1 lg:overflow-visible">
         {items.map((item) => {

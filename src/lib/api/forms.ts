@@ -1,6 +1,6 @@
 import type { FieldValues, Path, UseFormSetError } from "react-hook-form";
 
-import { isApiError, type ApiError } from "./error";
+import { isApiError, type ApiError, type FieldError } from "./error";
 
 const GENERIC_ERROR_MESSAGE = "Что-то пошло не так, попробуйте позже";
 
@@ -9,6 +9,11 @@ interface MapOptions<T extends FieldValues> {
   byErrorCode?: Record<string, Path<T>>;
   /** Поля этой формы. Ошибку другого поля негде показать: она уйдёт в сообщение формы. */
   fields?: readonly Path<T>[];
+  /**
+   * Имя поля формы по ошибке бэкенда (например, по полному `path` для вложенных полей).
+   * `undefined` значит, что поля нет: ошибка уйдёт в сообщение формы. По умолчанию `field`.
+   */
+  resolveField?: (error: FieldError) => Path<T> | undefined;
 }
 
 /**
@@ -19,13 +24,14 @@ interface MapOptions<T extends FieldValues> {
 export function applyApiErrorToForm<T extends FieldValues>(
   error: ApiError,
   setError: UseFormSetError<T>,
-  { byErrorCode = {}, fields }: MapOptions<T> = {},
+  { byErrorCode = {}, fields, resolveField }: MapOptions<T> = {},
 ): boolean {
   let applied = false;
 
-  for (const { field, message } of error.fieldErrors) {
-    if (fields && !fields.includes(field as Path<T>)) continue;
-    setError(field as Path<T>, { type: "server", message }, { shouldFocus: !applied });
+  for (const fieldError of error.fieldErrors) {
+    const field = resolveField ? resolveField(fieldError) : (fieldError.field as Path<T>);
+    if (!field || (fields && !fields.includes(field))) continue;
+    setError(field, { type: "server", message: fieldError.message }, { shouldFocus: !applied });
     applied = true;
   }
 

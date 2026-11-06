@@ -26,3 +26,17 @@ export function findCategory(
   }
   return undefined;
 }
+
+type SubcategoryForm =
+  operations["getSubcategoryForm"]["responses"][200]["content"]["application/json"];
+
+/** Группы и поля формы подкатегории (динамические атрибуты объявления). */
+export function getSubcategoryForm(
+  subcategoryId: string,
+  signal?: AbortSignal,
+): Promise<SubcategoryForm> {
+  return apiFetch<SubcategoryForm>(
+    `/api/v1/catalog/${encodeURIComponent(subcategoryId)}/form`,
+    { signal },
+  );
+}

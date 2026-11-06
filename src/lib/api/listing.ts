@@ -13,3 +13,14 @@ export function getListingsCatalog(
     query,
   });
 }
+
+type GetListingDetailsResponse =
+  operations["getListingDetails"]["responses"][200]["content"]["application/json"];
+
+export function getListingDetails(
+  listingId: string,
+): Promise<GetListingDetailsResponse> {
+  return apiFetch<GetListingDetailsResponse>(
+    `/api/v1/listing/${encodeURIComponent(listingId)}`,
+  );
+}

@@ -21,6 +21,9 @@
 
   --cta: #d79d2f;
   --cta-foreground: #171717;
+  /* Кнопка «Контакты» на странице объявления. */
+  --contact: #1c608a;
+  --contact-foreground: #ffffff;
 
   --secondary: #f3f4f6;
   --secondary-foreground: #171717;
@@ -51,6 +54,8 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-cta: var(--cta);
   --color-cta-foreground: var(--cta-foreground);
+  --color-contact: var(--contact);
+  --color-contact-foreground: var(--contact-foreground);
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);

@@ -58,6 +58,9 @@ export default async function ListingPage({
     <main className="flex-1 bg-muted py-8">
       <Container className="flex flex-col gap-6">
         <ListingBreadcrumbs subcategoryName={listing.subcategory} />
+        <h1 className="text-2xl font-semibold break-words lg:text-3xl">
+          {listing.title}
+        </h1>
 
         {/* Телефон: галерея → карточка → продавец → характеристики → описание (через order).
             С lg: слева галерея, характеристики, описание; справа липкая колонка. */}
@@ -82,15 +85,16 @@ export default async function ListingPage({
 
           <aside className="order-2 flex flex-col gap-4 lg:sticky lg:top-8">
             <ListingSummaryCard
-              listingId={listing.id}
               subcategory={listing.subcategory}
-              title={listing.title}
               city={listing.city}
               price={listing.price}
               currency={listing.currency}
+            />
+            <SellerCard
+              listingId={listing.id}
+              name={listing.display_owner_name}
               hasPhone={listing.contact_phone !== null}
             />
-            <SellerCard name={listing.display_owner_name} />
           </aside>
         </div>
       </Container>

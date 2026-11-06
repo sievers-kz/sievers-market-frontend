@@ -19,5 +19,5 @@ export type { LegalForm, Taxpayer } from "./vendor";
 export { ERROR_CODES } from "./error-codes";
 export { uploadToPresignedUrl } from "./upload";
 export { findCategory, getCategoryTree } from "./catalog";
-export { getListingsCatalog } from "./listing";
+export { getListingDetails, getListingsCatalog } from "./listing";
 export { getMediaUrl } from "./media";

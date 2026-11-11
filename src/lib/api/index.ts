@@ -30,3 +30,14 @@ export {
 } from "./reference";
 export { confirmUpload, generateUploadUrl, getMediaUrl } from "./media";
 export type { MediaType } from "./media";
+export {
+  createOrganization,
+  deleteOrganization,
+  getOrganization,
+  getOrganizations,
+} from "./organization";
+export type {
+  OrganizationKind,
+  OrganizationListItem,
+  RegistryStatus,
+} from "./organization";

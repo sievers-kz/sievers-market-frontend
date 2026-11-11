@@ -14,12 +14,14 @@ export function ListingCardSkeleton({ view = "grid" }: { view?: CatalogView }) {
         isList ? "flex-col sm:flex-row" : "flex-col",
       )}
     >
-      <Skeleton
-        className={cn(
-          "aspect-video shrink-0 rounded-none",
-          isList && "sm:aspect-auto sm:min-h-40 sm:w-64 sm:self-stretch",
-        )}
-      />
+      <div className={cn("shrink-0 p-2", isList && "sm:flex sm:w-64 sm:self-stretch")}>
+        <Skeleton
+          className={cn(
+            "aspect-video rounded-lg",
+            isList && "sm:aspect-auto sm:min-h-36 sm:flex-1",
+          )}
+        />
+      </div>
       <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
         <Skeleton className="h-6 w-4/5" />
         <Skeleton className="h-7 w-2/5" />

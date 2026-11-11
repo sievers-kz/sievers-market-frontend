@@ -84,6 +84,10 @@ export function ImageUploader({
         </span>
       </button>
 
+      <p className="text-sm text-muted-foreground">
+        От 1 до {MAX_IMAGES} фото, первое станет обложкой
+      </p>
+
       {error && (
         <p id="gallery-error" className="text-sm text-destructive">
           {error}

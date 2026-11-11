@@ -150,5 +150,9 @@ export function useImageUploads() {
   );
   const isUploading = items.some((item) => item.status === "uploading");
 
-  return { items, rejections, gallery, isUploading, addFiles, retry, remove };
+  // Один объект на одно состояние: форма под `memo` не перерисовывается без нужды.
+  return useMemo(
+    () => ({ items, rejections, gallery, isUploading, addFiles, retry, remove }),
+    [items, rejections, gallery, isUploading, addFiles, retry, remove],
+  );
 }

@@ -22,6 +22,7 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   applyApiErrorToForm,
   createListing,
+  ERROR_CODES,
   getCreatedListingId,
   isApiError,
   showFormError,
@@ -39,6 +40,7 @@ import {
   type ListingFormOutput,
   type ListingFormValues,
 } from "./listing-schema";
+import { ORGANIZATION_FIELD_ID } from "./organization-select";
 import { SelectField } from "./select-field";
 import type { ImageUploads } from "./use-image-uploads";
 
@@ -48,15 +50,28 @@ interface OrderedField {
   name: FieldName;
   /** id элемента в DOM: на него ставится фокус при ошибке. */
   domId: string;
-  section: string;
+  /** Секция аккордеона; `null` у поля вне формы (организация). */
+  section: string | null;
 }
 
-const STATIC_FIELDS = ["title", "price", "currency", "city_id", "description"] as const;
+const STATIC_FIELDS = ["organization_id", "title", "price", "currency", "city_id", "description"] as const;
 
 const CURRENCY_OPTIONS = CURRENCIES.map((code) => ({ value: code, label: code }));
 
+/** Организацию удалили или она потеряла подтверждение после загрузки страницы. */
+const ORGANIZATION_ERRORS: Record<string, string> = {
+  [ERROR_CODES.organizationNotFound]:
+    "Организация не найдена: возможно, её удалили. Выберите другую организацию.",
+  [ERROR_CODES.organizationCannotPublish]:
+    "Организация не подтверждена, от её имени нельзя подать объявление. Выберите другую организацию.",
+};
+
 interface ListingFormProps {
+  /** Выбор живёт над формой (`OrganizationSelect`); `""`, пока ничего не выбрано. */
   organizationId: string;
+  /** Ошибка поля организации: поле стоит вне формы и показывает её само. */
+  onOrganizationError: (message: string | undefined) => void;
+  onOrganizationsStale: () => void;
   categoryId: string;
   subcategoryId: string;
   /** Уже отсортированы по `position`. */
@@ -69,6 +84,8 @@ interface ListingFormProps {
 
 export function ListingForm({
   organizationId,
+  onOrganizationError,
+  onOrganizationsStale,
   categoryId,
   subcategoryId,
   groups,
@@ -83,6 +100,7 @@ export function ListingForm({
   const form = useForm<ListingFormValues, unknown, ListingFormOutput>({
     resolver: zodResolver(schema),
     defaultValues: {
+      organization_id: organizationId,
       title: "",
       price: "",
       currency: "KZT",
@@ -106,6 +124,7 @@ export function ListingForm({
   /** Поля в порядке на странице: для раскрытия секций и фокуса на первой ошибке. */
   const orderedFields = useMemo<OrderedField[]>(
     () => [
+      { name: "organization_id", domId: ORGANIZATION_FIELD_ID, section: null },
       { name: "title", domId: "title", section: "params" },
       { name: "price", domId: "price", section: "params" },
       { name: "currency", domId: "currency", section: "params" },
@@ -135,6 +154,17 @@ export function ListingForm({
     setValue("gallery", uploads.gallery, { shouldValidate: isSubmitted });
   }, [uploads.gallery, isSubmitted, setValue]);
 
+  useEffect(() => {
+    setValue("organization_id", organizationId, { shouldValidate: isSubmitted });
+  }, [organizationId, isSubmitted, setValue]);
+
+  const organizationError = errors.organization_id?.message;
+  useEffect(() => {
+    onOrganizationError(organizationError);
+  }, [organizationError, onOrganizationError]);
+  // Форма пересоздаётся при смене подкатегории: ошибка старой формы не должна остаться.
+  useEffect(() => () => onOrganizationError(undefined), [onOrganizationError]);
+
   // Фокус после того, как раскрытая секция смонтировала поле.
   useEffect(() => {
     if (!focusTarget) return;
@@ -146,7 +176,9 @@ export function ListingForm({
   function revealErrors(failing: readonly FieldName[]) {
     const fields = orderedFields.filter((field) => failing.includes(field.name));
     if (fields.length === 0) return;
-    const sections = new Set(fields.map((field) => field.section));
+    const sections = new Set(
+      fields.flatMap((field) => (field.section === null ? [] : [field.section])),
+    );
     setOpenSections((prev) => [...new Set([...prev, ...sections])]);
     setFocusTarget({ id: fields[0].domId });
   }
@@ -178,7 +210,7 @@ export function ListingForm({
     let response: unknown;
     try {
       response = await createListing({
-        organization_id: organizationId,
+        organization_id: values.organization_id,
         category_id: categoryId,
         subcategory_id: subcategoryId,
         title: values.title,
@@ -192,6 +224,12 @@ export function ListingForm({
     } catch (error) {
       if (!isApiError(error)) {
         showFormError(error, setError);
+        return;
+      }
+      const organizationMessage = error.errorCode ? ORGANIZATION_ERRORS[error.errorCode] : undefined;
+      if (organizationMessage) {
+        setError("root", { type: "server", message: organizationMessage });
+        onOrganizationsStale();
         return;
       }
       const resolved = error.fieldErrors.map((item) => resolveField(item));

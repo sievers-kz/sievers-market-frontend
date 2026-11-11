@@ -16,6 +16,8 @@ export interface ListingCardViewProps {
   /** Локальное превью (`blob:`): обычный `img`, `next/image` его не оптимизирует. */
   localImage?: boolean;
   view?: CatalogView;
+  /** Подпись под иконкой, пока фото нет (превью). В каталоге не передаётся: только иконка. */
+  imagePlaceholder?: string;
 }
 
 function Placeholder({ children }: { children: string }) {
@@ -34,6 +36,7 @@ export function ListingCardView({
   imageSrc,
   localImage = false,
   view = "grid",
+  imagePlaceholder,
 }: ListingCardViewProps) {
   const isList = view === "list";
 
@@ -44,34 +47,38 @@ export function ListingCardView({
         isList ? "flex-col sm:flex-row" : "flex-col",
       )}
     >
-      {/* Плитка: 16/9. Список (с sm): фиксированная ширина, высота — по карточке. */}
-      <div
-        className={cn(
-          "relative aspect-video shrink-0 bg-muted",
-          isList && "sm:aspect-auto sm:min-h-40 sm:w-64 sm:self-stretch",
-        )}
-      >
-        {imageSrc && localImage ? (
-          // Локальное превью из blob:, next/image тут не нужен.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={imageSrc} alt={title ?? ""} className="absolute inset-0 size-full object-cover" />
-        ) : imageSrc ? (
-          <Image
-            src={imageSrc}
-            alt={title ?? ""}
-            fill
-            sizes={
-              isList
-                ? "(min-width: 640px) 256px, 100vw"
-                : "(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
-            }
-            className="object-cover"
-          />
-        ) : (
-          <div className="flex size-full items-center justify-center text-muted-foreground">
-            <ImageOff className="size-8" aria-hidden />
-          </div>
-        )}
+      {/* Фото с отступом 8 от краёв карточки. Плитка: 16/9. Список (с sm): фиксированная
+          ширина, высота — по карточке. */}
+      <div className={cn("shrink-0 p-2", isList && "sm:flex sm:w-64 sm:self-stretch")}>
+        <div
+          className={cn(
+            "relative aspect-video overflow-hidden rounded-lg bg-muted",
+            isList && "sm:aspect-auto sm:min-h-36 sm:flex-1",
+          )}
+        >
+          {imageSrc && localImage ? (
+            // Локальное превью из blob:, next/image тут не нужен.
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={imageSrc} alt={title ?? ""} className="absolute inset-0 size-full object-cover" />
+          ) : imageSrc ? (
+            <Image
+              src={imageSrc}
+              alt={title ?? ""}
+              fill
+              sizes={
+                isList
+                  ? "(min-width: 640px) 256px, 100vw"
+                  : "(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
+              }
+              className="object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-muted-foreground">
+              <ImageOff className="size-12" aria-hidden />
+              {imagePlaceholder && <span className="text-xs">{imagePlaceholder}</span>}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">

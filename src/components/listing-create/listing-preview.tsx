@@ -23,6 +23,7 @@ export function ListingPreview({ data, cityName, className }: ListingPreviewProp
           city={cityName}
           imageSrc={data.imageUrl}
           localImage
+          imagePlaceholder="Фото появится здесь"
         />
       </div>
     </aside>

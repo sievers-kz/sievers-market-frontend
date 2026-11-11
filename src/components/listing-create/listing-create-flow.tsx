@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { getSubcategoryForm, type OrganizationListItem } from "@/lib/api";
@@ -10,7 +10,12 @@ import type { ReferenceSources } from "./attribute-field-input";
 import { CatalogPicker, EMPTY_SELECTION, type CatalogSelection } from "./catalog-picker";
 import { FormSectionsSkeleton } from "./form-sections-skeleton";
 import { ListingForm } from "./listing-form";
-import { ListingHints } from "./listing-hints";
+import { ListingPreview } from "./listing-preview";
+import {
+  EMPTY_PREVIEW_FIELDS,
+  type ListingPreviewData,
+  type ListingPreviewFields,
+} from "./listing-preview-data";
 import { sortGroups, type AttributeGroup } from "./listing-schema";
 import { OrganizationSelect, resolveOrganizationId } from "./organization-select";
 import { useImageUploads } from "./use-image-uploads";
@@ -53,9 +58,18 @@ export function ListingCreateFlow({
   const requestRef = useRef<AbortController | null>(null);
   // Выше формы: смена подкатегории пересоздаёт форму, но не трогает загруженные фото.
   const uploads = useImageUploads();
+  // Поля превью сообщает форма; при её пересоздании превью возвращается к заглушкам.
+  const [previewFields, setPreviewFields] = useState<ListingPreviewFields>(EMPTY_PREVIEW_FIELDS);
+  const coverUrl = uploads.items.find((item) => item.status === "done")?.previewUrl ?? null;
+  const preview = useMemo<ListingPreviewData>(
+    () => ({ ...previewFields, imageUrl: coverUrl }),
+    [previewFields, coverUrl],
+  );
+  const previewCity = cities.find((city) => city.id === preview.cityId)?.name ?? null;
 
   function loadForm(subcategoryId: string) {
     requestRef.current?.abort();
+    setPreviewFields(EMPTY_PREVIEW_FIELDS);
     if (!subcategoryId) {
       setFormState({ status: "idle" });
       return;
@@ -81,52 +95,57 @@ export function ListingCreateFlow({
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <OrganizationSelect
-        organizations={organizations}
-        value={organizationId}
-        onChange={setChosenOrganizationId}
-        error={organizationError}
-      />
-      <CatalogPicker tree={tree} value={selection} onChange={handleSelectionChange} />
+    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+      <div className="flex min-w-0 flex-col gap-6">
+        <OrganizationSelect
+          organizations={organizations}
+          value={organizationId}
+          onChange={setChosenOrganizationId}
+          error={organizationError}
+        />
+        <CatalogPicker tree={tree} value={selection} onChange={handleSelectionChange} />
 
-      <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
-        <div className="min-w-0">
-          {formState.status === "idle" && (
-            <p className="rounded-2xl bg-card p-6 text-center text-muted-foreground">
-              Выберите подкатегорию, чтобы заполнить объявление
-            </p>
-          )}
-          {formState.status === "loading" && <FormSectionsSkeleton />}
-          {formState.status === "error" && (
-            <div
-              role="alert"
-              className="flex flex-col items-center gap-4 rounded-2xl bg-card p-6 text-center"
-            >
-              <p>Не удалось загрузить поля подкатегории.</p>
-              <Button type="button" onClick={() => loadForm(selection.subcategoryId)}>
-                Повторить
-              </Button>
-            </div>
-          )}
-          {formState.status === "ready" && (
-            // key: смена подкатегории начинает форму заново (кроме фото).
-            <ListingForm
-              key={selection.subcategoryId}
-              organizationId={organizationId}
-              onOrganizationError={setOrganizationError}
-              onOrganizationsStale={onOrganizationsStale}
-              categoryId={selection.categoryId}
-              subcategoryId={selection.subcategoryId}
-              groups={formState.groups}
-              cities={cities}
-              references={references}
-              uploads={uploads}
-            />
-          )}
-        </div>
-        <ListingHints />
+        {formState.status === "idle" && (
+          <p className="rounded-2xl bg-card p-6 text-center text-muted-foreground">
+            Выберите подкатегорию, чтобы заполнить объявление
+          </p>
+        )}
+        {formState.status === "loading" && <FormSectionsSkeleton />}
+        {formState.status === "error" && (
+          <div
+            role="alert"
+            className="flex flex-col items-center gap-4 rounded-2xl bg-card p-6 text-center"
+          >
+            <p>Не удалось загрузить поля подкатегории.</p>
+            <Button type="button" onClick={() => loadForm(selection.subcategoryId)}>
+              Повторить
+            </Button>
+          </div>
+        )}
+        {formState.status === "ready" && (
+          // key: смена подкатегории начинает форму заново (кроме фото).
+          <ListingForm
+            key={selection.subcategoryId}
+            organizationId={organizationId}
+            onOrganizationError={setOrganizationError}
+            onOrganizationsStale={onOrganizationsStale}
+            categoryId={selection.categoryId}
+            subcategoryId={selection.subcategoryId}
+            groups={formState.groups}
+            cities={cities}
+            references={references}
+            uploads={uploads}
+            onPreviewChange={setPreviewFields}
+          />
+        )}
       </div>
+
+      {/* Телефон: карточку не показываем (иначе её пришлось бы монтировать дважды). */}
+      <ListingPreview
+        data={preview}
+        cityName={previewCity}
+        className="hidden lg:sticky lg:top-8 lg:flex"
+      />
     </div>
   );
 }

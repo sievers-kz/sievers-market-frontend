@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import {
   Controller,
   FormProvider,
@@ -40,6 +40,8 @@ import {
   type ListingFormOutput,
   type ListingFormValues,
 } from "./listing-schema";
+import type { ListingPreviewFields } from "./listing-preview-data";
+import { ListingPreviewWatcher } from "./listing-preview-watcher";
 import { ORGANIZATION_FIELD_ID } from "./organization-select";
 import { SelectField } from "./select-field";
 import type { ImageUploads } from "./use-image-uploads";
@@ -80,9 +82,12 @@ interface ListingFormProps {
   references: ReferenceSources;
   /** Фото принадлежат странице, а не форме: переживают смену подкатегории. */
   uploads: ImageUploads;
+  /** Поля превью (название, цена, валюта, город); колбэк должен быть стабильным. */
+  onPreviewChange: (fields: ListingPreviewFields) => void;
 }
 
-export function ListingForm({
+/** `memo`: обновление превью во Flow не перерисовывает форму. */
+export const ListingForm = memo(function ListingForm({
   organizationId,
   onOrganizationError,
   onOrganizationsStale,
@@ -92,6 +97,7 @@ export function ListingForm({
   cities,
   references,
   uploads,
+  onPreviewChange,
 }: ListingFormProps) {
   const router = useRouter();
   const [published, setPublished] = useState(false);
@@ -275,6 +281,7 @@ export function ListingForm({
         noValidate
         className="flex flex-col gap-6"
       >
+        <ListingPreviewWatcher control={control} onChange={onPreviewChange} />
         <Accordion
           type="multiple"
           value={openSections}
@@ -416,4 +423,4 @@ export function ListingForm({
       </form>
     </FormProvider>
   );
-}
+});

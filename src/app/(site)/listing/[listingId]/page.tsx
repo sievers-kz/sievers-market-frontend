@@ -9,7 +9,6 @@ import { ListingDescription } from "@/components/listing/listing-description";
 import { ListingGallery } from "@/components/listing/listing-gallery";
 import { ListingSummaryCard } from "@/components/listing/listing-summary-card";
 import { ListingTitleCard } from "@/components/listing/listing-title-card";
-import { SellerCard } from "@/components/listing/seller-card";
 import { getListingDetails, isApiError } from "@/lib/api";
 
 const DESCRIPTION_META_LENGTH = 160;
@@ -65,8 +64,9 @@ export default async function ListingPage({
           city={listing.city}
         />
 
-        {/* Телефон: галерея → карточка → продавец → характеристики → описание (через order).
-            С lg: слева галерея, характеристики, описание; справа липкая колонка. */}
+        {/* Телефон: галерея → цена → характеристики → описание (через order).
+            С lg: слева галерея, характеристики, описание; справа липкая колонка с ценой.
+            Карточки продавца нет: данных организации в ответе нет (backend#207). */}
         <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
           <div className="contents lg:flex lg:min-w-0 lg:flex-col lg:gap-6">
             <ListingGallery
@@ -86,15 +86,10 @@ export default async function ListingPage({
             )}
           </div>
 
-          <aside className="order-2 flex flex-col gap-4 lg:sticky lg:top-8">
+          <aside className="order-2 lg:sticky lg:top-8">
             <ListingSummaryCard
               price={listing.price}
               currency={listing.currency}
-            />
-            <SellerCard
-              listingId={listing.id}
-              name={listing.display_owner_name}
-              hasPhone={listing.contact_phone !== null}
             />
           </aside>
         </div>

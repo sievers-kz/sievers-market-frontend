@@ -29,21 +29,9 @@ export default function ListingLoading() {
             </SkeletonCard>
           </div>
 
-          <div className="order-2 flex flex-col gap-4">
-            <SkeletonCard>
-              <Skeleton className="h-9 w-1/2" />
-            </SkeletonCard>
-            <SkeletonCard>
-              <div className="flex items-center gap-4">
-                <Skeleton className="size-12 shrink-0 rounded-full" />
-                <div className="flex flex-1 flex-col gap-2">
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-5 w-3/4" />
-                </div>
-              </div>
-              <Skeleton className="h-12" />
-            </SkeletonCard>
-          </div>
+          <SkeletonCard className="order-2">
+            <Skeleton className="h-9 w-1/2" />
+          </SkeletonCard>
         </div>
       </Container>
     </main>

@@ -4,7 +4,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 import { GuestActions } from "./guest-actions";
 import { useHeaderUser } from "./header-user-provider";
-import { NoRoleActions } from "./no-role-actions";
 import { UserMenu } from "./user-menu";
 
 export function HeaderUserBlock() {
@@ -16,6 +15,5 @@ export function HeaderUserBlock() {
 
   const { user } = state;
   if (user === null) return <GuestActions />;
-  if (user.role === null) return <NoRoleActions onLoggedOut={showGuest} />;
   return <UserMenu user={user} onLoggedOut={showGuest} />;
 }

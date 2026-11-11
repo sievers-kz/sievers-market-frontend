@@ -7,18 +7,17 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/api";
 
-import { ListingCreateFlow, type ListingCreateData } from "./listing-create-flow";
 import { ListingCreateSkeleton } from "./listing-create-skeleton";
 
 const LOGIN_PATH = `/login?next=${encodeURIComponent("/listings/new")}`;
 
-type Access = "checking" | "vendor" | "customer" | "redirect" | "error";
+type Access = "checking" | "allowed" | "redirect" | "error";
 
 /**
  * Доступ проверяется в браузере: здесь работает refresh токена, а сервер
  * с истёкшим access-токеном ошибочно отправил бы вошедшего на /login.
  */
-export function ListingCreateGate(data: ListingCreateData) {
+export function ListingCreateGate() {
   const router = useRouter();
   const [access, setAccess] = useState<Access>("checking");
   const [attempt, setAttempt] = useState(0);
@@ -31,11 +30,8 @@ export function ListingCreateGate(data: ListingCreateData) {
         if (user === null) {
           setAccess("redirect");
           router.replace(LOGIN_PATH);
-        } else if (user.role === null) {
-          setAccess("redirect");
-          router.replace("/onboarding");
         } else {
-          setAccess(user.role === "vendor" ? "vendor" : "customer");
+          setAccess("allowed");
         }
       },
       () => {
@@ -66,16 +62,15 @@ export function ListingCreateGate(data: ListingCreateData) {
     );
   }
 
-  if (access === "customer") {
-    return (
-      <div className="flex flex-col items-center gap-4 rounded-2xl bg-card p-8 text-center">
-        <p className="text-lg font-medium">Чтобы подать объявление, станьте продавцом</p>
-        <Button asChild>
-          <Link href="/">Перейти в каталог</Link>
-        </Button>
-      </div>
-    );
-  }
-
-  return <ListingCreateFlow {...data} />;
+  // TODO(PR 3, docs/pages/organizations-migration.md): вместо заглушки загрузить
+  // организации (getOrganizations) и показать ListingCreateFlow с organizationId
+  // выбранной verified-организации; справочники вернуть в page.tsx.
+  return (
+    <div className="flex flex-col items-center gap-4 rounded-2xl bg-card p-8 text-center">
+      <p className="text-lg font-medium">Подача объявлений скоро будет доступна</p>
+      <Button asChild>
+        <Link href="/">Перейти в каталог</Link>
+      </Button>
+    </div>
+  );
 }

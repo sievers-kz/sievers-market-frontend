@@ -60,13 +60,7 @@ export function ListingCard({ listing, view }: ListingCardProps) {
         >
           {listing.title}
         </h3>
-        <p
-          className="truncate text-sm text-muted-foreground"
-          title={listing.display_owner_name}
-        >
-          {listing.display_owner_name}
-        </p>
-        <p className="mt-auto pt-2 text-lg font-semibold">
+        <p className="mt-auto text-lg font-semibold">
           {formatPrice(listing.price, listing.currency)}
         </p>
         <p className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground">

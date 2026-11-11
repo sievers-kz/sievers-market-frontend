@@ -56,6 +56,7 @@ const STATIC_FIELDS = ["title", "price", "currency", "city_id", "description"] a
 const CURRENCY_OPTIONS = CURRENCIES.map((code) => ({ value: code, label: code }));
 
 interface ListingFormProps {
+  organizationId: string;
   categoryId: string;
   subcategoryId: string;
   /** Уже отсортированы по `position`. */
@@ -67,6 +68,7 @@ interface ListingFormProps {
 }
 
 export function ListingForm({
+  organizationId,
   categoryId,
   subcategoryId,
   groups,
@@ -176,6 +178,7 @@ export function ListingForm({
     let response: unknown;
     try {
       response = await createListing({
+        organization_id: organizationId,
         category_id: categoryId,
         subcategory_id: subcategoryId,
         title: values.title,

@@ -3,14 +3,11 @@ import { isApiError } from "./error";
 import type { components, operations } from "./schema";
 
 type Schemas = components["schemas"];
-type MeResponse =
-  operations["getMe"]["responses"][200]["content"]["application/json"];
+type CustomerMeResponse =
+  operations["getCustomerMe"]["responses"][200]["content"]["application/json"];
 
-/** `role: null` значит, что онбординг не пройден. */
-export type CurrentUser =
-  | Schemas["CustomerMeResponse"]
-  | Schemas["VendorMeResponse"]
-  | { role: null };
+/** Профиль аккаунта. Ролей нет: объявления подаются от имени организаций. */
+export type CurrentUser = CustomerMeResponse;
 
 export async function createNewUser(
   body: Schemas["CreateAccountRequest"],
@@ -40,8 +37,9 @@ export async function logoutUser(): Promise<void> {
   await apiFetch<unknown>("/api/v1/iam/logout", { method: "POST" });
 }
 
-export function getMe(): Promise<MeResponse> {
-  return apiFetch<MeResponse>("/api/v1/iam/me", { cache: "no-store" });
+/** Если профиля ещё нет, бэкенд создаёт его при первом обращении. */
+export function getCustomerMe(): Promise<CustomerMeResponse> {
+  return apiFetch<CustomerMeResponse>("/api/v1/customer/me", { cache: "no-store" });
 }
 
 /**
@@ -50,12 +48,7 @@ export function getMe(): Promise<MeResponse> {
  */
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   try {
-    const me = await getMe();
-    // На проводе `role: null`, в сгенерированных типах "None" (backend#204).
-    if (me.role === "None" || (me.role as string | null) === null) {
-      return { role: null };
-    }
-    return me;
+    return await getCustomerMe();
   } catch (error) {
     if (isApiError(error) && error.status === 401) return null;
     throw error;

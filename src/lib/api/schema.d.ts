@@ -4,29 +4,6 @@
  */
 
 export interface paths {
-    "/api/v1/iam/me": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Получить текущего пользователя
-         * @description Возвращает профиль аутентифицированного пользователя:
-         *     * `Customer` - Покупатель
-         *     * `Vendor` - Продавец
-         *     * `None` - Если онбординг еще не пройден.
-         */
-        get: operations["getMe"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/iam/": {
         parameters: {
             query?: never;
@@ -281,20 +258,71 @@ export interface paths {
         patch: operations["confirmEmailChange"];
         trace?: never;
     };
-    "/api/v1/customer/": {
+    "/api/v1/customer/me": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /**
-         * Создание профиля покупателя
-         * @description Заводит профиль покупателя для текущего аккаунта — часть онбординга после регистрации.
+         * Профиль текущего покупателя
+         * @description Возвращает профиль покупателя текущего аккаунта: email, ФИО и дату последней смены пароля.
+         *     Если профиля ещё нет, он создаётся автоматически при первом обращении.
          */
-        post: operations["createCustomer"];
+        get: operations["getCustomerMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/organization/{organization_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Организация покупателя
+         * @description Возвращает полную информацию об организации, включая текущий `registry_status`.
+         *     Используется для опроса статуса после добавления организации.
+         *     Чужая организация возвращается как ненайденная.
+         */
+        get: operations["getOrganization"];
+        put?: never;
+        post?: never;
+        /**
+         * Удаление организации
+         * @description Безвозвратно удаляет организацию со статусом `pending` или `not_found`,
+         *     после чего этот ИИН/БИН можно добавить заново (например, с исправленным `kind`).
+         *     Подтверждённую (`verified`) организацию удалить нельзя.
+         *     Чужая организация возвращается как ненайденная.
+         */
+        delete: operations["deleteOrganization"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/organizations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Список организаций покупателя
+         * @description Возвращает все организации текущего покупателя в порядке добавления.
+         *     Краткий набор полей для карточек; полная информация — в `GET /organization/{organization_id}`.
+         */
+        get: operations["getOrganizations"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -321,31 +349,7 @@ export interface paths {
         patch: operations["changeCustomerFullname"];
         trace?: never;
     };
-    "/api/v1/vendor/taxpayer/{tax_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Проверка налогоплательщика по ИИН / БИН
-         * @description Проверяет `ИИН` & `БИН` во внешнем реестре налогоплательщиков и возвращает:
-         *     * Юридическое наименование
-         *     * Организационно-правовую форму (ОПФ)
-         *     * Статус ликвидации
-         *     Первый шаг онбординга продавца.
-         */
-        get: operations["verifyTaxpayer"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/vendor/": {
+    "/api/v1/customer/organization": {
         parameters: {
             query?: never;
             header?: never;
@@ -355,194 +359,19 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Создание профиля продавца
-         * @description Заводит профиль продавца для текущего аккаунта на основе проверенных данных налогоплательщик
+         * Добавление организации
+         * @description Регистрирует организацию (ТОО или ИП) по ИИН/БИН и запускает фоновую проверку в госреестре.
+         *
+         *     - `tax_id` — ровно 12 цифр, иначе `422`.
+         *     - `kind` должен соответствовать типу налогоплательщика в реестре:
+         *       `company` для юрлица (БИН), `individual` для ИП (ИИН).
+         *     - Ответ приходит сразу со статусом `registry_status: pending`. Результат проверки
+         *       (`verified` или `not_found`) нужно получать опросом `GET /organization/{organization_id}`.
+         *     - `not_found` означает, что в реестре нет действующего налогоплательщика с таким номером и типом
+         *       (номер не найден, тип не совпал или организация ликвидирована).
+         *     - Если реестр временно недоступен, статус остаётся `pending`, проверка повторяется автоматически.
          */
-        post: operations["createVendor"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/vendor/contact-fullname": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Изменение ФИО контактного лица
-         * @description Обновляет ФИО контактного лица продавца.
-         */
-        patch: operations["changeContactFullname"];
-        trace?: never;
-    };
-    "/api/v1/vendor/contact-phone": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Изменение контактного телефона
-         * @description Обновляет контактный телефон продавца.
-         */
-        patch: operations["changeContactPhone"];
-        trace?: never;
-    };
-    "/api/v1/vendor/shop-name": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Изменение названия магазина
-         * @description Обновляет публичное название магазина продавца.
-         */
-        patch: operations["changeShopName"];
-        trace?: never;
-    };
-    "/api/v1/vendor/logotype/change": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Изменение логотипа магазина
-         * @description Обновляет логотип магазина; принимает медиа-объект, ранее загруженный через `/api/v1/media`.
-         */
-        patch: operations["changeLogotype"];
-        trace?: never;
-    };
-    "/api/v1/vendor/me/listings/{status}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Мои объявления по статусу
-         * @description Возвращает постраничный список объявлений текущего продавца, отфильтрованных по статусу
-         *     (`active`, `inactive`, `archived`, `deleted`).
-         */
-        get: operations["getMeListings"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/vendor/close": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Закрытие профиля продавца
-         * @description Деактивирует профиль продавца — витрина и объявления скрываются из публичного каталога.
-         */
-        patch: operations["closeVendor"];
-        trace?: never;
-    };
-    "/api/v1/vendor/restore": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /**
-         * Восстановление профиля продавца
-         * @description Восстанавливает ранее закрытый профиль продавца.
-         *     Восстановление возможно только **в течении 30 дней** с момента закрытия.
-         *     По истечению более 30 дней, профиль считается окончательно удаленным.
-         */
-        patch: operations["restoreVendor"];
-        trace?: never;
-    };
-    "/api/v1/vendor/catalog": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Каталог продавцов
-         * @description Возвращает постраничный публичный список карточек продавцов.
-         *     Продавцы не прошедшие верификацию не отображаются в публичном каталоге продавцов.
-         */
-        get: operations["getVendorCatalog"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/vendor/{vendor_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Детали продавца
-         * @description Возвращает публичную карточку продавца с полной информацией: реквизиты, логотип, статус верификации.
-         */
-        get: operations["getVendorDetails"];
-        put?: never;
-        post?: never;
+        post: operations["createOrganization"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1129,7 +958,11 @@ export interface paths {
         put?: never;
         /**
          * Создание объявления
-         * @description Создаёт новое объявление продавца со статичными полями, галереей и динамическими атрибутами подкатегории.
+         * @description Создаёт новое объявление со статичными полями, галереей и динамическими атрибутами подкатегории.
+         *
+         *     Объявление размещается от имени организации из `organization_id`. Организация должна принадлежать
+         *     текущему покупателю (иначе `404`) и быть подтверждённой в реестре, `registry_status: verified`
+         *     (иначе `403`). Список организаций для выбора — `GET /api/v1/customer/organizations`.
          */
         post: operations["createListing"];
         delete?: never;
@@ -1626,20 +1459,6 @@ export interface components {
              */
             rubric_id: string;
         };
-        /** ChangeContactFullnameRequest */
-        ChangeContactFullnameRequest: {
-            /** Contact Last Name */
-            contact_last_name: string;
-            /** Contact First Name */
-            contact_first_name: string;
-            /** Contact Patronymic */
-            contact_patronymic?: string | null;
-        };
-        /** ChangeContactPhoneRequest */
-        ChangeContactPhoneRequest: {
-            /** Contact Phone */
-            contact_phone: string;
-        };
         /** ChangeCustomerFullname */
         ChangeCustomerFullname: {
             /** Last Name */
@@ -1695,29 +1514,10 @@ export interface components {
             price: number;
             currency: components["schemas"]["PriceCurrency"];
         };
-        /** ChangeLogotypeRequest */
-        ChangeLogotypeRequest: {
-            /**
-             * Logotype
-             * @example {
-             *       "media_id": "uuid-1",
-             *       "media_size": 1,
-             *       "media_type": "image/png"
-             *     }
-             */
-            logotype?: {
-                [key: string]: unknown;
-            };
-        };
         /** ChangeRubricNameRequest */
         ChangeRubricNameRequest: {
             /** Name */
             name: string;
-        };
-        /** ChangeShopNameRequest */
-        ChangeShopNameRequest: {
-            /** Shop Name */
-            shop_name: string;
         };
         /** ChangeSubcategoryNameRequest */
         ChangeSubcategoryNameRequest: {
@@ -1867,15 +1667,13 @@ export interface components {
             /** Hex */
             hex: string;
         };
-        /** CreateCustomerRequest */
-        CreateCustomerRequest: {
-            /** Last Name */
-            last_name: string;
-            /** First Name */
-            first_name: string;
-        };
         /** CreateListingRequest */
         CreateListingRequest: {
+            /**
+             * Organization Id
+             * Format: uuid
+             */
+            organization_id: string;
             /**
              * Category Id
              * Format: uuid
@@ -1913,6 +1711,21 @@ export interface components {
                 [key: string]: unknown;
             };
         };
+        /** CreateOrganizationRequest */
+        CreateOrganizationRequest: {
+            kind: components["schemas"]["Kind"];
+            /** Tax Id */
+            tax_id: string;
+        };
+        /** CreateOrganizationResponse */
+        CreateOrganizationResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            registry_status: components["schemas"]["RegistryStatus"];
+        };
         /** CreateOriginCountryRequest */
         CreateOriginCountryRequest: {
             /** Name */
@@ -1933,31 +1746,13 @@ export interface components {
             /** Name */
             name: string;
         };
-        /** CreateVendorRequest */
-        CreateVendorRequest: {
-            /** Contact Last Name */
-            contact_last_name: string;
-            /** Contact First Name */
-            contact_first_name: string;
-            /** Legal Name */
-            legal_name: string;
-            /** Legal Address */
-            legal_address: string;
-            /** Tax Id */
-            tax_id: string;
-            legal_form: components["schemas"]["LegalForm"];
-        };
         /** CustomerMeResponse */
         CustomerMeResponse: {
             /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
+             * Id
+             * Format: uuid
              */
-            role: "customer";
-            profile: components["schemas"]["CustomerProfileResponse"];
-        };
-        /** CustomerProfileResponse */
-        CustomerProfileResponse: {
+            id: string;
             /** Email */
             email: string;
             /**
@@ -1965,44 +1760,12 @@ export interface components {
              * Format: date-time
              */
             password_changed_at: string;
-            /**
-             * Customer Id
-             * Format: uuid
-             */
-            customer_id: string;
             /** Last Name */
-            last_name: string;
+            last_name?: string | null;
             /** First Name */
-            first_name: string;
+            first_name?: string | null;
             /** Patronymic */
-            patronymic: string | null;
-            /** Avatar Url */
-            avatar_url: string | null;
-        };
-        /** DetailVendorResponse */
-        DetailVendorResponse: {
-            /**
-             * Id
-             * Format: uuid
-             */
-            id: string;
-            /** Contact Phone */
-            contact_phone: string | null;
-            /** Legal Name */
-            legal_name: string;
-            /** Legal Address */
-            legal_address: string;
-            /** Tax Id */
-            tax_id: string;
-            legal_form: components["schemas"]["LegalForm"];
-            /** Shop Name */
-            shop_name: string | null;
-            /** Logotype */
-            logotype: {
-                [key: string]: unknown;
-            } | null;
-            /** Is Verified */
-            is_verified: boolean;
+            patronymic?: string | null;
         };
         /** FileUploadInput */
         FileUploadInput: {
@@ -2047,10 +1810,10 @@ export interface components {
             detail?: components["schemas"]["ValidationError"][];
         };
         /**
-         * LegalForm
+         * Kind
          * @enum {string}
          */
-        LegalForm: "IE" | "LLP" | "JSC" | "FARM";
+        Kind: "individual" | "company";
         /** ListingCardResponse */
         ListingCardResponse: {
             /**
@@ -2058,8 +1821,6 @@ export interface components {
              * Format: uuid
              */
             id: string;
-            /** Display Owner Name */
-            display_owner_name: string;
             /** Subcategory */
             subcategory: string;
             /** Title */
@@ -2088,10 +1849,6 @@ export interface components {
              * Format: uuid
              */
             owner_id: string;
-            /** Contact Phone */
-            contact_phone: string | null;
-            /** Display Owner Name */
-            display_owner_name: string;
             /** Subcategory */
             subcategory: string;
             /** Title */
@@ -2140,7 +1897,7 @@ export interface components {
              * @default {}
              */
             attributes: {
-                [key: string]: unknown;
+                [key: string]: string | number | boolean;
             };
             /**
              * Page
@@ -2153,11 +1910,6 @@ export interface components {
              */
             limit: number;
         };
-        /**
-         * ListingStatus
-         * @enum {string}
-         */
-        ListingStatus: "active" | "inactive" | "archived" | "deleted";
         /** LoginAccount */
         LoginAccount: {
             /**
@@ -2180,20 +1932,60 @@ export interface components {
          * @enum {string}
          */
         MediaType: "image/png" | "image/jpeg" | "image/webp";
-        /** NoRoleMeResponse */
-        NoRoleMeResponse: {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            role: "None";
-        };
         /** OptionItem */
         OptionItem: {
             /** Key */
             key: string;
             /** Label */
             label: string;
+        };
+        /** OrganizationListResponse */
+        OrganizationListResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Tax Id */
+            tax_id: string;
+            kind: components["schemas"]["Kind"];
+            registry_status: components["schemas"]["RegistryStatus"];
+            /** Is Ownership Verified */
+            is_ownership_verified: boolean;
+            /** Legal Name */
+            legal_name?: string | null;
+            /** Shop Name */
+            shop_name?: string | null;
+            /** Logo Media Id */
+            logo_media_id?: string | null;
+        };
+        /** OrganizationResponse */
+        OrganizationResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Tax Id */
+            tax_id: string;
+            kind: components["schemas"]["Kind"];
+            registry_status: components["schemas"]["RegistryStatus"];
+            /** Is Ownership Verified */
+            is_ownership_verified: boolean;
+            /** Legal Name */
+            legal_name?: string | null;
+            /** Legal Address */
+            legal_address?: string | null;
+            /** Form */
+            form?: string | null;
+            /** Shop Name */
+            shop_name?: string | null;
+            /** Logo Media Id */
+            logo_media_id?: string | null;
+            /** Contact Phone */
+            contact_phone?: string | null;
+            /** Contact Email */
+            contact_email?: string | null;
         };
         /** OriginCountryResponse */
         OriginCountryResponse: {
@@ -2216,28 +2008,6 @@ export interface components {
             /** Pages */
             pages: number;
         };
-        /** PaginatedResponse[VendorCardResponse] */
-        PaginatedResponse_VendorCardResponse_: {
-            /** Items */
-            items: components["schemas"]["VendorCardResponse"][];
-            /** Total */
-            total: number;
-            /** Page */
-            page: number;
-            /** Pages */
-            pages: number;
-        };
-        /** PaginatedResponse[VendorListingCardsResponse] */
-        PaginatedResponse_VendorListingCardsResponse_: {
-            /** Items */
-            items: components["schemas"]["VendorListingCardsResponse"][];
-            /** Total */
-            total: number;
-            /** Page */
-            page: number;
-            /** Pages */
-            pages: number;
-        };
         /**
          * PriceCurrency
          * @enum {string}
@@ -2248,6 +2018,11 @@ export interface components {
             /** Refresh Token */
             refresh_token?: string | null;
         };
+        /**
+         * RegistryStatus
+         * @enum {string}
+         */
+        RegistryStatus: "verified" | "pending" | "not_found";
         /** RequestPasswordChange */
         RequestPasswordChange: {
             /** Raw Password */
@@ -2330,16 +2105,6 @@ export interface components {
             /** Name */
             name: string;
         };
-        /** TaxpayerResponse */
-        TaxpayerResponse: {
-            /** Tax Id */
-            tax_id: string;
-            /** Legal Name */
-            legal_name: string;
-            legal_form: components["schemas"]["LegalForm"];
-            /** Is Liquidation */
-            is_liquidation: boolean;
-        };
         /** UpdateBrandRequest */
         UpdateBrandRequest: {
             /** Name */
@@ -2380,97 +2145,6 @@ export interface components {
             /** Error Type */
             type: string;
         };
-        /** VendorCardResponse */
-        VendorCardResponse: {
-            /**
-             * Vendor Id
-             * Format: uuid
-             */
-            vendor_id: string;
-            /** Is Verified */
-            is_verified: boolean;
-            /** Display Name */
-            display_name: string;
-            /** Logotype */
-            logotype: {
-                [key: string]: unknown;
-            } | null;
-        };
-        /** VendorListingCardsResponse */
-        VendorListingCardsResponse: {
-            /**
-             * Listing Id
-             * Format: uuid
-             */
-            listing_id: string;
-            /** Subcategory */
-            subcategory: string;
-            /** Title */
-            title: string;
-            /** Price */
-            price: number;
-            /** Currency */
-            currency: string;
-            /**
-             * Updated At
-             * Format: date-time
-             */
-            updated_at: string;
-            /** City */
-            city: string;
-            /**
-             * Preview Image
-             * Format: uuid
-             */
-            preview_image: string;
-        };
-        /** VendorMeResponse */
-        VendorMeResponse: {
-            /**
-             * @description discriminator enum property added by openapi-typescript
-             * @enum {string}
-             */
-            role: "vendor";
-            profile: components["schemas"]["VendorProfileResponse"];
-        };
-        /** VendorProfileResponse */
-        VendorProfileResponse: {
-            /** Email */
-            email: string;
-            /**
-             * Password Changed At
-             * Format: date-time
-             */
-            password_changed_at: string;
-            /**
-             * Vendor Id
-             * Format: uuid
-             */
-            vendor_id: string;
-            /** Is Verified */
-            is_verified: boolean;
-            /** Contact Last Name */
-            contact_last_name: string;
-            /** Contact First Name */
-            contact_first_name: string;
-            /** Contact Patronymic */
-            contact_patronymic: string | null;
-            /** Contact Phone */
-            contact_phone: string | null;
-            /** Legal Name */
-            legal_name: string;
-            /** Legal Address */
-            legal_address: string;
-            /** Tax Id */
-            tax_id: string;
-            legal_form: components["schemas"]["LegalForm"];
-            /** Shop Name */
-            shop_name: string | null;
-            /** Logotype */
-            logotype: {
-                [key: string]: unknown;
-            } | null;
-        };
     };
     responses: never;
     parameters: never;
@@ -2480,55 +2154,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    getMe: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Client-Type"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["CustomerMeResponse"] | components["schemas"]["VendorMeResponse"] | components["schemas"]["NoRoleMeResponse"];
-                };
-            };
-            /** @description Unauthorized */
-            401: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
     createNewUser: {
         parameters: {
             query?: never;
@@ -3093,7 +2718,7 @@ export interface operations {
             };
         };
     };
-    createCustomer: {
+    getCustomerMe: {
         parameters: {
             query?: never;
             header?: {
@@ -3102,11 +2727,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateCustomerRequest"];
-            };
-        };
+        requestBody?: never;
         responses: {
             /** @description Successful Response */
             200: {
@@ -3114,16 +2735,138 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CustomerMeResponse"];
                 };
             };
-            /** @description Unprocessable Entity */
+            /** @description Validation Error */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    getOrganization: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Client-Type"?: string | null;
+            };
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    deleteOrganization: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Client-Type"?: string | null;
+            };
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    getOrganizations: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Client-Type"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrganizationListResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -3172,60 +2915,7 @@ export interface operations {
             };
         };
     };
-    verifyTaxpayer: {
-        parameters: {
-            query: {
-                legal_form: components["schemas"]["LegalForm"];
-            };
-            header?: {
-                "X-Client-Type"?: string | null;
-            };
-            path: {
-                tax_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["TaxpayerResponse"];
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    createVendor: {
+    createOrganization: {
         parameters: {
             query?: never;
             header?: {
@@ -3236,412 +2926,21 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateVendorRequest"];
+                "application/json": components["schemas"]["CreateOrganizationRequest"];
             };
         };
         responses: {
             /** @description Successful Response */
-            200: {
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["CreateOrganizationResponse"];
                 };
             };
             /** @description Conflict */
             409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    changeContactFullname: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Client-Type"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ChangeContactFullnameRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Unprocessable Entity */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    changeContactPhone: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Client-Type"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ChangeContactPhoneRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Unprocessable Entity */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    changeShopName: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Client-Type"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ChangeShopNameRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    changeLogotype: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Client-Type"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ChangeLogotypeRequest"];
-            };
-        };
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Unprocessable Entity */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-        };
-    };
-    getMeListings: {
-        parameters: {
-            query?: {
-                page?: number;
-                limit?: number;
-            };
-            header?: {
-                "X-Client-Type"?: string | null;
-            };
-            path: {
-                status: components["schemas"]["ListingStatus"];
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponse_VendorListingCardsResponse_"];
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    closeVendor: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Client-Type"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Forbidden */
-            403: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    restoreVendor: {
-        parameters: {
-            query?: never;
-            header?: {
-                "X-Client-Type"?: string | null;
-            };
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Bad Request */
-            400: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": unknown;
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    getVendorCatalog: {
-        parameters: {
-            query?: {
-                page?: number;
-                limit?: number;
-            };
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["PaginatedResponse_VendorCardResponse_"];
-                };
-            };
-            /** @description Validation Error */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
-                };
-            };
-        };
-    };
-    getVendorDetails: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                vendor_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["DetailVendorResponse"];
-                };
-            };
-            /** @description Not Found */
-            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -4925,6 +4224,15 @@ export interface operations {
                     "application/json": unknown;
                 };
             };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
             /** @description Validation Error */
             422: {
                 headers: {
@@ -4962,8 +4270,8 @@ export interface operations {
                     "application/json": unknown;
                 };
             };
-            /** @description Forbidden */
-            403: {
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5008,8 +4316,8 @@ export interface operations {
                     "application/json": unknown;
                 };
             };
-            /** @description Forbidden */
-            403: {
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5054,8 +4362,8 @@ export interface operations {
                     "application/json": unknown;
                 };
             };
-            /** @description Forbidden */
-            403: {
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5100,8 +4408,8 @@ export interface operations {
                     "application/json": unknown;
                 };
             };
-            /** @description Forbidden */
-            403: {
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5142,8 +4450,8 @@ export interface operations {
                     "application/json": unknown;
                 };
             };
-            /** @description Forbidden */
-            403: {
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5193,8 +4501,8 @@ export interface operations {
                     "application/json": unknown;
                 };
             };
-            /** @description Forbidden */
-            403: {
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5244,8 +4552,8 @@ export interface operations {
                     "application/json": unknown;
                 };
             };
-            /** @description Forbidden */
-            403: {
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5295,8 +4603,8 @@ export interface operations {
                     "application/json": unknown;
                 };
             };
-            /** @description Forbidden */
-            403: {
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -5346,13 +4654,13 @@ export interface operations {
                     "application/json": unknown;
                 };
             };
-            /** @description Validation Error */
+            /** @description Unprocessable Entity */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HTTPValidationError"];
+                    "application/json": unknown;
                 };
             };
         };

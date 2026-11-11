@@ -28,7 +28,17 @@ export interface ListingCreateData {
   references: ReferenceSources;
 }
 
-export function ListingCreateFlow({ tree, cities, references }: ListingCreateData) {
+interface ListingCreateFlowProps extends ListingCreateData {
+  /** Организация, от имени которой подаётся объявление (выбор появится в PR 3). */
+  organizationId: string;
+}
+
+export function ListingCreateFlow({
+  organizationId,
+  tree,
+  cities,
+  references,
+}: ListingCreateFlowProps) {
   const [selection, setSelection] = useState<CatalogSelection>(EMPTY_SELECTION);
   const [formState, setFormState] = useState<FormState>({ status: "idle" });
   const requestRef = useRef<AbortController | null>(null);
@@ -88,6 +98,7 @@ export function ListingCreateFlow({ tree, cities, references }: ListingCreateDat
             // key: смена подкатегории начинает форму заново (кроме фото).
             <ListingForm
               key={selection.subcategoryId}
+              organizationId={organizationId}
               categoryId={selection.categoryId}
               subcategoryId={selection.subcategoryId}
               groups={formState.groups}

@@ -11,18 +11,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useLogout } from "@/hooks/use-logout";
+import type { CurrentUser } from "@/lib/api";
 
-import { getAvatarLetter, getDisplayName, type UserWithRole } from "./user-display";
+import { getAvatarLetter, getDisplayName } from "./user-display";
 
 /** Аватар с меню. Пункты добавляем, только когда есть страницы (docs/pages/header.md). */
 export function UserMenu({
   user,
   onLoggedOut,
 }: {
-  user: UserWithRole;
+  user: CurrentUser;
   onLoggedOut: () => void;
 }) {
   const { logout, pending } = useLogout(onLoggedOut);
+  const displayName = getDisplayName(user);
 
   return (
     <DropdownMenu>
@@ -42,8 +44,14 @@ export function UserMenu({
         className="w-64 max-w-[calc(100vw-32px)] p-2"
       >
         <DropdownMenuLabel className="flex flex-col gap-1 px-2 py-2 font-normal">
-          <span className="truncate font-medium">{getDisplayName(user)}</span>
-          <span className="truncate text-muted-foreground">{user.profile.email}</span>
+          {displayName ? (
+            <>
+              <span className="truncate font-medium">{displayName}</span>
+              <span className="truncate text-muted-foreground">{user.email}</span>
+            </>
+          ) : (
+            <span className="truncate font-medium">{user.email}</span>
+          )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem

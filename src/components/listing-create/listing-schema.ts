@@ -14,6 +14,7 @@ export const MAX_IMAGES = 10;
 
 /** Значения формы. Числа хранятся строками (как в `<input>`) и превращаются в числа схемой. */
 export interface ListingFormValues {
+  organization_id: string;
   title: string;
   price: string;
   currency: PriceCurrency;
@@ -26,6 +27,7 @@ export interface ListingFormValues {
 export type AttributeValue = string | number | boolean;
 
 export interface ListingFormOutput {
+  organization_id: string;
   title: string;
   price: number;
   currency: PriceCurrency;
@@ -178,6 +180,8 @@ export function buildListingSchema(
   );
 
   return z.object({
+    // Пустая строка (ничего не выбрано) тоже не uuid: одно сообщение на оба случая.
+    organization_id: z.uuid("Выберите организацию"),
     title: z.string().trim().min(1, "Введите заголовок"),
     price: priceSchema,
     currency: z.enum(CURRENCIES),

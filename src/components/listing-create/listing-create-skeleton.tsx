@@ -10,10 +10,13 @@ function FieldSkeleton() {
   );
 }
 
-/** Скелетон страницы: выбор каталога, место под форму и подсказки. */
+/** Скелетон страницы: организация, выбор каталога, место под форму и подсказки. */
 export function ListingCreateSkeleton() {
   return (
     <div className="flex flex-col gap-6" aria-busy="true">
+      <SkeletonCard>
+        <FieldSkeleton />
+      </SkeletonCard>
       <SkeletonCard className="grid md:grid-cols-3">
         <FieldSkeleton />
         <FieldSkeleton />

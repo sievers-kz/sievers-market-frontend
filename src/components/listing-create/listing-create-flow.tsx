@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { getSubcategoryForm } from "@/lib/api";
+import { getSubcategoryForm, type OrganizationListItem } from "@/lib/api";
 import type { components } from "@/lib/api/schema";
 
 import type { ReferenceSources } from "./attribute-field-input";
@@ -12,6 +12,7 @@ import { FormSectionsSkeleton } from "./form-sections-skeleton";
 import { ListingForm } from "./listing-form";
 import { ListingHints } from "./listing-hints";
 import { sortGroups, type AttributeGroup } from "./listing-schema";
+import { OrganizationSelect, resolveOrganizationId } from "./organization-select";
 import { useImageUploads } from "./use-image-uploads";
 
 type Rubric = components["schemas"]["RubricResponse"];
@@ -29,16 +30,24 @@ export interface ListingCreateData {
 }
 
 interface ListingCreateFlowProps extends ListingCreateData {
-  /** Организация, от имени которой подаётся объявление (выбор появится в PR 3). */
-  organizationId: string;
+  /** Все организации пользователя, среди них хотя бы одна `verified`. */
+  organizations: readonly OrganizationListItem[];
+  /** Перечитать организации: бэкенд сказал, что выбранная недоступна. */
+  onOrganizationsStale: () => void;
 }
 
 export function ListingCreateFlow({
-  organizationId,
+  organizations,
+  onOrganizationsStale,
   tree,
   cities,
   references,
 }: ListingCreateFlowProps) {
+  // Выбор организации живёт выше формы: не сбрасывается при смене подкатегории.
+  const [chosenOrganizationId, setChosenOrganizationId] = useState("");
+  const organizationId = resolveOrganizationId(organizations, chosenOrganizationId);
+  /** Ошибка поля `organization_id` из формы: само поле стоит над выбором каталога. */
+  const [organizationError, setOrganizationError] = useState<string | undefined>();
   const [selection, setSelection] = useState<CatalogSelection>(EMPTY_SELECTION);
   const [formState, setFormState] = useState<FormState>({ status: "idle" });
   const requestRef = useRef<AbortController | null>(null);
@@ -73,6 +82,12 @@ export function ListingCreateFlow({
 
   return (
     <div className="flex flex-col gap-6">
+      <OrganizationSelect
+        organizations={organizations}
+        value={organizationId}
+        onChange={setChosenOrganizationId}
+        error={organizationError}
+      />
       <CatalogPicker tree={tree} value={selection} onChange={handleSelectionChange} />
 
       <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
@@ -99,6 +114,8 @@ export function ListingCreateFlow({
             <ListingForm
               key={selection.subcategoryId}
               organizationId={organizationId}
+              onOrganizationError={setOrganizationError}
+              onOrganizationsStale={onOrganizationsStale}
               categoryId={selection.categoryId}
               subcategoryId={selection.subcategoryId}
               groups={formState.groups}

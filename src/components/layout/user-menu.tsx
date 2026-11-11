@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronDown, LogOut } from "lucide-react";
+import { Building2, ChevronDown, LogOut } from "lucide-react";
+import Link from "next/link";
 
 import {
   DropdownMenu,
@@ -54,6 +55,12 @@ export function UserMenu({
           )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild className="px-2 py-2">
+          <Link href="/account/organizations">
+            <Building2 aria-hidden />
+            Мои организации
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem
           disabled={pending}
           onSelect={() => void logout()}

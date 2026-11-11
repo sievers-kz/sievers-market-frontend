@@ -1,6 +1,6 @@
 "use client";
 
-import { LoaderCircle, Trash2 } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -13,9 +13,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
 import { deleteOrganization, ERROR_CODES, isApiError } from "@/lib/api";
 
 import { ORGANIZATIONS_LOGIN_PATH } from "./login-path";
@@ -23,20 +21,24 @@ import { ORGANIZATIONS_TEXT } from "./organization-labels";
 
 interface DeleteOrganizationDialogProps {
   organizationId: string;
+  /** Открывается пунктом «Удалить» в меню «⋯» карточки. */
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   /** 204 или 404: карточку убираем. */
   onDeleted: () => void;
   /** 400 `organization_cannot_be_deleted`: организацию успели подтвердить. */
   onCannotDelete: () => void;
 }
 
-/** Кнопка «Удалить» с подтверждением. */
+/** Подтверждение удаления; открывается снаружи (меню «⋯» карточки). */
 export function DeleteOrganizationDialog({
   organizationId,
+  open,
+  onOpenChange: setOpen,
   onDeleted,
   onCannotDelete,
 }: DeleteOrganizationDialogProps) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,16 +75,6 @@ export function DeleteOrganizationDialog({
         if (!next) setError(null);
       }}
     >
-      <AlertDialogTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          className="self-start px-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
-        >
-          <Trash2 aria-hidden />
-          {ORGANIZATIONS_TEXT.delete}
-        </Button>
-      </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{ORGANIZATIONS_TEXT.deleteTitle}</AlertDialogTitle>

@@ -99,7 +99,7 @@
   }
   button:disabled,
   select:disabled,
-  [role="button"][aria-disabled="true"] {
+  [aria-disabled="true"] {
     cursor: not-allowed;
   }
 }

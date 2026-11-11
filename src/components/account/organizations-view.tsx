@@ -1,12 +1,13 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Building2, Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { getOrganizations, isApiError, type OrganizationListItem } from "@/lib/api";
 
+import { AccountPageHeader } from "./account-page-header";
 import { AddOrganizationDialog } from "./add-organization-dialog";
 import { ORGANIZATIONS_LOGIN_PATH } from "./login-path";
 import { OrganizationCard } from "./organization-card";
@@ -77,12 +78,15 @@ export function OrganizationsView() {
     </Button>
   );
 
+  const isEmpty = state.status === "ready" && state.items.length === 0;
+
   return (
     <>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-semibold lg:text-3xl">{ORGANIZATIONS_TEXT.pageTitle}</h1>
-        {addButton}
-      </div>
+      {/* В пустом состоянии кнопка стоит в карточке, в заголовке её не дублируем. */}
+      <AccountPageHeader
+        title={ORGANIZATIONS_TEXT.pageTitle}
+        action={isEmpty ? undefined : addButton}
+      />
 
       {state.status === "loading" && <OrganizationsListSkeleton />}
 
@@ -101,15 +105,19 @@ export function OrganizationsView() {
         </div>
       )}
 
-      {state.status === "ready" && state.items.length === 0 && (
-        <div className="flex flex-col items-center gap-4 rounded-2xl bg-card p-8 text-center">
-          <p className="max-w-md">{ORGANIZATIONS_TEXT.empty}</p>
+      {isEmpty && (
+        <div className="flex flex-col items-center gap-4 rounded-2xl bg-card px-4 py-12 text-center sm:px-8">
+          <span className="flex size-16 items-center justify-center rounded-full bg-accent text-primary">
+            <Building2 aria-hidden className="size-8" />
+          </span>
+          <h2 className="text-xl font-semibold">{ORGANIZATIONS_TEXT.emptyTitle}</h2>
+          <p className="max-w-md text-muted-foreground">{ORGANIZATIONS_TEXT.empty}</p>
           {addButton}
         </div>
       )}
 
       {state.status === "ready" && state.items.length > 0 && (
-        <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {state.items.map((organization) => (
             <li key={organization.id} className="flex min-w-0 flex-col">
               <OrganizationCard

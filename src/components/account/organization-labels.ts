@@ -16,27 +16,25 @@ export const KIND_LABELS: Record<
 /** Порядок плиток в форме добавления. */
 export const KIND_ORDER = ["individual", "company"] as const satisfies readonly OrganizationKind[];
 
-export const STATUS_LABELS: Record<RegistryStatus, { badge: string; hint?: string }> = {
-  pending: {
-    badge: "Проверяем",
-    hint: "Проверяем организацию в госреестре. Это обычно занимает несколько секунд.",
-  },
+/** В карточке только тег: пояснений текстом нет (docs/pages/organizations.md). */
+export const STATUS_LABELS: Record<RegistryStatus, { badge: string }> = {
+  pending: { badge: "Проверяем" },
   verified: { badge: "Подтверждена" },
-  not_found: {
-    badge: "Не найдена в реестре",
-    hint: "Не нашли действующего налогоплательщика с таким номером и типом. Проверьте номер и тип: удалите организацию и добавьте заново.",
-  },
+  not_found: { badge: "Не найдена в реестре" },
 };
 
 export const ORGANIZATIONS_TEXT = {
   pageTitle: "Мои организации",
   addButton: "Добавить организацию",
-  empty: "У вас пока нет организаций. Добавьте организацию, чтобы подавать объявления.",
+  emptyTitle: "У вас пока нет организаций",
+  empty: "Добавьте организацию, чтобы подавать объявления.",
   listError: "Не удалось загрузить организации. Проверьте подключение и попробуйте ещё раз.",
   retry: "Повторить",
   pageError: "Не удалось открыть организации",
 
-  pollingStalled: "Проверка идёт дольше обычного. Обновите страницу позже",
+  /** Заголовок карточки, пока нет `shop_name` и `legal_name`. */
+  fallbackTitle: "Организация",
+  actions: "Действия",
   pollAgain: "Проверить снова",
 
   delete: "Удалить",

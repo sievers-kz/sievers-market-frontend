@@ -3,14 +3,13 @@ import { redirect } from "next/navigation";
 
 import { AuthCard } from "@/components/auth/auth-card";
 import { LoginForm } from "@/components/auth/login-form";
-import { getPostAuthPath } from "@/components/auth/post-auth-path";
 import { getCurrentUser } from "@/lib/api";
 
 export const metadata: Metadata = { title: "Вход" };
 
 export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   const user = await getCurrentUser();
-  if (user) redirect(getPostAuthPath(user));
+  if (user) redirect("/");
 
   const { next } = await searchParams;
 

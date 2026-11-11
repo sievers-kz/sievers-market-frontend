@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 
 import { Input } from "@/components/ui/input";
-import { getCurrentUser, loginUser, showFormError } from "@/lib/api";
+import { loginUser, showFormError } from "@/lib/api";
 
 import { FormField } from "./form-field";
 import { FormMessage } from "./form-message";
@@ -30,9 +30,7 @@ export function LoginForm({ next }: { next?: string }) {
   async function onSubmit(values: LoginValues) {
     try {
       await loginUser(values);
-      const user = await getCurrentUser();
-      if (!user) throw new Error("Сессия не появилась после входа");
-      router.replace(getPostAuthPath(user, next));
+      router.replace(getPostAuthPath(next));
       router.refresh();
     } catch (error) {
       showFormError(error, setError);

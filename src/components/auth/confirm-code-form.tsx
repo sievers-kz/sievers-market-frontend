@@ -12,7 +12,6 @@ import { Label } from "@/components/ui/label";
 import {
   confirmAccount,
   ERROR_CODES,
-  getCurrentUser,
   isApiError,
   resendConfirmationCode,
   showFormError,
@@ -57,9 +56,7 @@ export function ConfirmCodeForm({ email }: { email: string }) {
   async function onSubmit({ confirm_code }: ConfirmCodeValues) {
     try {
       await confirmAccount({ email, confirm_code });
-      const user = await getCurrentUser();
-      if (!user) throw new Error("Сессия не появилась после подтверждения");
-      router.replace(getPostAuthPath(user));
+      router.replace(getPostAuthPath());
       router.refresh();
     } catch (error) {
       showFormError(error, setError, {

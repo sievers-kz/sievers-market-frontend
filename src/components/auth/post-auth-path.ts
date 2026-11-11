@@ -1,5 +1,3 @@
-import type { CurrentUser } from "@/lib/api";
-
 const BASE = "https://internal.invalid";
 
 /** Адрес из `?next=`, только если это путь на нашем сайте. */
@@ -16,7 +14,6 @@ export function safeNextPath(next: string | undefined): string | undefined {
 }
 
 /** Куда вести пользователя после входа и подтверждения почты. */
-export function getPostAuthPath(user: CurrentUser, next?: string): string {
-  if (user.role === null) return "/onboarding";
+export function getPostAuthPath(next?: string): string {
   return safeNextPath(next) ?? "/";
 }

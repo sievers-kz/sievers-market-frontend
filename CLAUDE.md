@@ -30,12 +30,12 @@ docs/pages/           спецификации экранов — читай п�
 ## API
 - Типы **только** из `src/lib/api/schema.d.ts` (генерируется). Ручные копии типов ответов запрещены.
 - Любой запрос идёт через `apiFetch` из `@/lib/api`: он сам добавляет `X-Client-Type: web`, `credentials: "include"`, на сервере пробрасывает cookie, в браузере делает single-flight refresh при 401. Прямой `fetch` к нашему API запрещён.
-- Функции запросов называй по `operationId` из OpenAPI (`getMe`, `loginUser`, `createListing`…), клади в `src/lib/api/<домен>.ts`.
+- Функции запросов называй по `operationId` из OpenAPI (`getCustomerMe`, `loginUser`, `createListing`…), клади в `src/lib/api/<домен>.ts`.
 - Авторизация — httpOnly cookie. Токены из тела ответов **не читать**, не хранить в JS, `localStorage`, Zustand.
 - Ошибки: `ApiError` (`status`, `errorCode`, `message`, `fieldErrors`). Бэкенд присылает два формата: `{ error_code, message }` и стандартный 422 `{ detail: [{ loc, msg }] }`. В формах используй `applyApiErrorToForm`; для бизнес-ошибок передай `byErrorCode` (например `invalid_otp_code_error` → поле кода). Ошибки без поля показывай сообщением формы.
 - Zod-схемы форм должны повторять DTO из OpenAPI (обязательность, ограничения).
 - Загрузка файлов: `generateUploadUrl` → `uploadToPresignedUrl` (PUT напрямую в MinIO) → `confirmUpload`.
-- Пользователь: получай через единую функцию `getCurrentUser()` (когда появится в `lib/api/auth`). Не угадывай роль по косвенным признакам. `/me` возвращает union по `role`: `customer`, `vendor` или нет роли (онбординг не пройден).
+- Пользователь: получай через единую функцию `getCurrentUser()` из `lib/api/auth` (`getCustomerMe`, `null` при 401). Ролей и онбординга нет: один аккаунт, объявления подаются от имени его организаций (`docs/pages/organizations-migration.md`).
 - Справочные данные (дерево категорий `getCategoryTree`, города, бренды) читаются на сервере с `next: { revalidate }`. В Zustand их не копируй.
 
 ## Дизайн

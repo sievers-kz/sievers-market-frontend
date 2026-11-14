@@ -6,9 +6,13 @@ import { cn } from "@/lib/utils";
 
 import { STATUS_LABELS } from "./organization-labels";
 
+/**
+ * `pending` нейтральный. Спека просит `text-muted-foreground`, но на `bg-muted` это 4.39:1,
+ * поэтому текст `foreground`, как у бейджа «Скоро» в сайдбаре.
+ */
 const STATUS_STYLES: Record<RegistryStatus, string> = {
-  pending: "bg-cta/10 text-cta",
-  verified: "bg-accent text-accent-foreground",
+  pending: "bg-muted text-foreground",
+  verified: "bg-cta/10 text-cta",
   not_found: "bg-destructive/10 text-destructive",
 };
 

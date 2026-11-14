@@ -13,4 +13,6 @@ export const ERROR_CODES = {
   organizationNotFound: "organization_not_found_error",
   organizationCannotBeDeleted: "organization_cannot_be_deleted",
   organizationCannotPublish: "organization_cannot_publish_error",
+  invalidShopName: "invalid_shop_name_error",
+  invalidPhoneFormat: "invalid_phone_format_error",
 } as const;

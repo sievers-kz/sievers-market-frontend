@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useEffectEvent, useState } from "react";
 
-import { getOrganization, isApiError, type OrganizationListItem } from "@/lib/api";
+import { getOrganization, isApiError, type OrganizationDetails } from "@/lib/api";
 
 import { ORGANIZATIONS_LOGIN_PATH } from "./login-path";
 
@@ -15,16 +15,25 @@ interface Options {
   organizationId: string;
   /** Опрашивать, пока статус `pending`. */
   enabled: boolean;
-  onUpdate: (organization: OrganizationListItem) => void;
+  /** Каждый ответ целиком: страница организации показывает все поля, список берёт свои. */
+  onUpdate: (organization: OrganizationDetails) => void;
   /** 404: организацию удалили (например, в другой вкладке). */
   onGone: () => void;
+  /** Куда вести при 401; по умолчанию вход с возвратом на список. */
+  loginPath?: string;
 }
 
 /**
  * Опрос `getOrganization` раз в 3 секунды, не больше 40 попыток.
  * Пока вкладка скрыта, запросы не идут и попытки не считаются.
  */
-export function useRegistryStatusPolling({ organizationId, enabled, onUpdate, onGone }: Options) {
+export function useRegistryStatusPolling({
+  organizationId,
+  enabled,
+  onUpdate,
+  onGone,
+  loginPath = ORGANIZATIONS_LOGIN_PATH,
+}: Options) {
   const router = useRouter();
   const [stalled, setStalled] = useState(false);
   const [run, setRun] = useState(0);
@@ -63,7 +72,7 @@ export function useRegistryStatusPolling({ organizationId, enabled, onUpdate, on
           return;
         }
         if (isApiError(error) && error.status === 401) {
-          router.replace(ORGANIZATIONS_LOGIN_PATH);
+          router.replace(loginPath);
           return;
         }
         // Сбой сети или 5xx: попытка засчитана, пробуем дальше.
@@ -82,7 +91,7 @@ export function useRegistryStatusPolling({ organizationId, enabled, onUpdate, on
       controller.abort();
       clearTimeout(timer);
     };
-  }, [organizationId, enabled, stalled, run, router]);
+  }, [organizationId, enabled, stalled, run, router, loginPath]);
 
   const restart = () => {
     setStalled(false);

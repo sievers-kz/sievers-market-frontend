@@ -31,12 +31,16 @@ export {
 export { confirmUpload, generateUploadUrl, getMediaUrl } from "./media";
 export type { MediaType } from "./media";
 export {
+  changeOrganizationContactEmail,
+  changeOrganizationContactPhone,
+  changeOrganizationShopName,
   createOrganization,
   deleteOrganization,
   getOrganization,
   getOrganizations,
 } from "./organization";
 export type {
+  OrganizationDetails,
   OrganizationKind,
   OrganizationListItem,
   RegistryStatus,

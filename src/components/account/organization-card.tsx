@@ -1,7 +1,8 @@
 "use client";
 
 import { Building2 } from "lucide-react";
-import { useState } from "react";
+import Link from "next/link";
+import { useRef, useState } from "react";
 
 import { getOrganization, type OrganizationListItem } from "@/lib/api";
 
@@ -20,11 +21,14 @@ interface OrganizationCardProps {
 /**
  * Все карточки одинаковы, различает их только тег статуса: сверху тег и меню «⋯»,
  * ниже квадрат с иконкой, название в одну строку и номер. Подсказок в карточке нет.
+ * Вся карточка ведёт на страницу организации: ссылка в заголовке растянута на карточку
+ * (`after:inset-0`), меню «⋯» лежит над ней (`z-10`), а не внутри `<a>`.
  */
 export function OrganizationCard({ organization, onUpdate, onRemove }: OrganizationCardProps) {
   const { id, kind, tax_id: taxId, registry_status: status } = organization;
   const [notice, setNotice] = useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const menuTriggerRef = useRef<HTMLButtonElement>(null);
 
   const { stalled, restart } = useRegistryStatusPolling({
     organizationId: id,
@@ -47,15 +51,18 @@ export function OrganizationCard({ organization, onUpdate, onRemove }: Organizat
   }
 
   return (
-    <article className="flex min-w-0 flex-1 flex-col gap-4 rounded-2xl bg-card p-6">
+    <article className="relative flex min-w-0 flex-1 flex-col gap-4 rounded-2xl bg-card p-6 transition-shadow hover:shadow-md">
       <div className="flex h-8 items-center justify-between gap-4">
         <OrganizationStatusBadge status={status} checking={status === "pending" && !stalled} />
         {/* У `verified` меню нет, место под кнопку остаётся. */}
         {canDelete ? (
-          <OrganizationActionsMenu
-            onDelete={() => setDeleteOpen(true)}
-            onPollAgain={stalled ? restart : undefined}
-          />
+          <div className="relative z-10">
+            <OrganizationActionsMenu
+              triggerRef={menuTriggerRef}
+              onDelete={() => setDeleteOpen(true)}
+              onPollAgain={stalled ? restart : undefined}
+            />
+          </div>
         ) : (
           <span aria-hidden className="size-8 shrink-0" />
         )}
@@ -69,7 +76,14 @@ export function OrganizationCard({ organization, onUpdate, onRemove }: Organizat
           <Building2 className="size-6" />
         </span>
         <div className="flex min-w-0 flex-1 flex-col">
-          <h2 className="truncate text-base font-semibold">{title}</h2>
+          <h2 className="truncate text-base font-semibold">
+            <Link
+              href={`/account/organizations/${encodeURIComponent(id)}`}
+              className="outline-none after:absolute after:inset-0 after:rounded-2xl focus-visible:after:ring-2 focus-visible:after:ring-ring"
+            >
+              {title}
+            </Link>
+          </h2>
           <p className="text-sm text-muted-foreground">{formatTaxId(kind, taxId)}</p>
         </div>
       </div>
@@ -88,6 +102,7 @@ export function OrganizationCard({ organization, onUpdate, onRemove }: Organizat
           onOpenChange={setDeleteOpen}
           onDeleted={() => onRemove(id)}
           onCannotDelete={() => void handleCannotDelete()}
+          returnFocusRef={menuTriggerRef}
         />
       )}
     </article>

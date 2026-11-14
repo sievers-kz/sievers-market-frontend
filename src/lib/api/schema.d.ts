@@ -290,6 +290,7 @@ export interface paths {
          * Организация покупателя
          * @description Возвращает полную информацию об организации, включая текущий `registry_status`.
          *     Используется для опроса статуса после добавления организации.
+         *     В `missing_fields` перечислены поля профиля, которые ещё нужно заполнить, чтобы размещать объявления.
          *     Чужая организация возвращается как ненайденная.
          */
         get: operations["getOrganization"];
@@ -376,6 +377,71 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/organization/{organization_id}/shop-name": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Изменение названия магазина организации
+         * @description Задаёт название магазина — оно показывается покупателям вместо юридического наименования.
+         *     Поле обязательное: от 2 до 50 символов и хотя бы одна буква, лишние пробелы схлопываются.
+         *     Менять может владелец при любом статусе организации. Чужая организация возвращается как ненайденная.
+         */
+        patch: operations["changeOrganizationShopName"];
+        trace?: never;
+    };
+    "/api/v1/customer/organization/{organization_id}/contact-phone": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Изменение контактного телефона организации
+         * @description Задаёт контактный телефон организации. Номер приводится к международному формату (E.164) для Казахстана.
+         *     Поле обязательное. Менять может владелец при любом статусе организации.
+         *     Чужая организация возвращается как ненайденная.
+         */
+        patch: operations["changeOrganizationContactPhone"];
+        trace?: never;
+    };
+    "/api/v1/customer/organization/{organization_id}/contact-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Изменение контактного email организации
+         * @description Задаёт контактный email организации (до 255 символов). Поле обязательное.
+         *     Менять может владелец при любом статусе организации. Чужая организация возвращается как ненайденная.
+         */
+        patch: operations["changeOrganizationContactEmail"];
         trace?: never;
     };
     "/api/v1/reference/brand/": {
@@ -1514,6 +1580,24 @@ export interface components {
             price: number;
             currency: components["schemas"]["PriceCurrency"];
         };
+        /** ChangeOrganizationContactEmailRequest */
+        ChangeOrganizationContactEmailRequest: {
+            /**
+             * Contact Email
+             * Format: email
+             */
+            contact_email: string;
+        };
+        /** ChangeOrganizationContactPhoneRequest */
+        ChangeOrganizationContactPhoneRequest: {
+            /** Contact Phone */
+            contact_phone: string;
+        };
+        /** ChangeOrganizationShopNameRequest */
+        ChangeOrganizationShopNameRequest: {
+            /** Shop Name */
+            shop_name: string;
+        };
         /** ChangeRubricNameRequest */
         ChangeRubricNameRequest: {
             /** Name */
@@ -1986,6 +2070,11 @@ export interface components {
             contact_phone?: string | null;
             /** Contact Email */
             contact_email?: string | null;
+            /**
+             * Missing Fields
+             * @description Поля профиля, которые нужно заполнить, чтобы организация могла размещать объявления
+             */
+            missing_fields?: string[];
         };
         /** OriginCountryResponse */
         OriginCountryResponse: {
@@ -2941,6 +3030,144 @@ export interface operations {
             };
             /** @description Conflict */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    changeOrganizationShopName: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Client-Type"?: string | null;
+            };
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeOrganizationShopNameRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    changeOrganizationContactPhone: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Client-Type"?: string | null;
+            };
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeOrganizationContactPhoneRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    changeOrganizationContactEmail: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Client-Type"?: string | null;
+            };
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangeOrganizationContactEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

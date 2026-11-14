@@ -1,6 +1,7 @@
 "use client";
 
 import { Ellipsis, RotateCw, Trash2 } from "lucide-react";
+import type { Ref } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,8 +20,11 @@ import { ORGANIZATIONS_TEXT } from "./organization-labels";
 export function OrganizationActionsMenu({
   onDelete,
   onPollAgain,
+  triggerRef,
 }: {
   onDelete: () => void;
+  /** Кнопка «⋯»: на неё диалог удаления возвращает фокус. */
+  triggerRef?: Ref<HTMLButtonElement>;
   /** Есть только когда опрос остановился после 40 попыток. */
   onPollAgain?: () => void;
 }) {
@@ -28,6 +32,7 @@ export function OrganizationActionsMenu({
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
+          ref={triggerRef}
           type="button"
           variant="ghost"
           size="icon"

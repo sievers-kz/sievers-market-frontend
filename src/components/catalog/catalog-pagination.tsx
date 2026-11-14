@@ -66,7 +66,7 @@ export function CatalogPagination({
     buildCatalogHref(categoryId, { ...params, page });
 
   return (
-    <nav aria-label="Страницы" className="flex justify-center">
+    <nav aria-label="Страницы" className="flex justify-center rounded-2xl border bg-card p-4">
       <ul className="flex flex-wrap items-center gap-2">
         {current > 1 && (
           <li>

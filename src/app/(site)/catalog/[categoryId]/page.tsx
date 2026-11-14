@@ -38,7 +38,7 @@ export default async function CatalogPage({
   }
 
   return (
-    <main className="flex-1 bg-muted py-8">
+    <main className="flex-1 py-8">
       <Container className="flex flex-col gap-6">
         <CatalogBreadcrumbs
           rubricName={rubric.name}

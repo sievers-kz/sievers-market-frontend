@@ -1,17 +1,19 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { SkeletonCard } from "@/components/ui/skeleton-card";
 import { cn } from "@/lib/utils";
 
 import type { CatalogView } from "./search-params";
 
-/** Повторяет `ListingCard`: та же карточка, полоски вместо картинки и текста. */
+/** Повторяет `ListingCard`: та же карточка-объект, полоски вместо картинки и текста. */
 export function ListingCardSkeleton({ view = "grid" }: { view?: CatalogView }) {
   const isList = view === "list";
 
   return (
-    <div
+    <SkeletonCard
+      variant="card"
       className={cn(
-        "flex w-full min-w-0 overflow-hidden rounded-2xl bg-card",
-        isList ? "flex-col sm:flex-row" : "flex-col",
+        "w-full min-w-0 gap-0 overflow-hidden p-0",
+        isList && "sm:flex-row",
       )}
     >
       <div className={cn("shrink-0 p-2", isList && "sm:flex sm:w-64 sm:self-stretch")}>
@@ -27,6 +29,6 @@ export function ListingCardSkeleton({ view = "grid" }: { view?: CatalogView }) {
         <Skeleton className="h-7 w-2/5" />
         <Skeleton className="h-5 w-1/3" />
       </div>
-    </div>
+    </SkeletonCard>
   );
 }

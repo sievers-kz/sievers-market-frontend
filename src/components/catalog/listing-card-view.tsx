@@ -27,6 +27,7 @@ function Placeholder({ children }: { children: string }) {
 /**
  * Вёрстка карточки объявления без ссылки и без данных бэкенда. В каталоге её оборачивает
  * `ListingCard`, в форме создания она же служит превью.
+ * Карточка-объект: тень `shadow-card`; наведение на ссылку-обёртку (`group`) усиливает её.
  */
 export function ListingCardView({
   title,
@@ -43,7 +44,7 @@ export function ListingCardView({
   return (
     <div
       className={cn(
-        "flex w-full min-w-0 overflow-hidden rounded-2xl bg-card text-card-foreground",
+        "flex w-full min-w-0 overflow-hidden rounded-2xl bg-card text-card-foreground shadow-card transition-shadow group-hover:shadow-card-hover",
         isList ? "flex-col sm:flex-row" : "flex-col",
       )}
     >

@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CatalogLoading() {
   return (
-    <main className="flex-1 bg-muted py-8" aria-busy="true">
+    <main className="flex-1 py-8" aria-busy="true">
       <Container className="flex flex-col gap-6">
         <Skeleton className="h-5 w-64" />
         <Skeleton className="h-8 w-48 lg:h-9" />

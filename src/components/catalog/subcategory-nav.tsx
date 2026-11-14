@@ -16,6 +16,7 @@ interface SubcategoryNavProps {
 /**
  * Выбор одной подкатегории. Каждый пункт — ссылка: страница сбрасывается на 1, вид сохраняется.
  * На мобильных — горизонтальная строка, с `lg` — вертикальный список в сайдбаре.
+ * Сайдбар плоский: без фона, рамки и тени, выделен только активный пункт.
  */
 export function SubcategoryNav({
   categoryId,
@@ -28,7 +29,7 @@ export function SubcategoryNav({
   ];
 
   return (
-    <nav aria-label="Категории" className="rounded-2xl bg-card p-2 lg:p-4">
+    <nav aria-label="Категории">
       <h2 className="sr-only lg:not-sr-only lg:mb-2 lg:px-2 lg:text-lg lg:font-semibold">
         Категории
       </h2>

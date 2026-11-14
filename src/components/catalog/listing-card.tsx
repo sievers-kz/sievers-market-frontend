@@ -17,7 +17,7 @@ export function ListingCard({ listing, view }: ListingCardProps) {
   return (
     <Link
       href={`/listing/${listing.id}`}
-      className="group flex w-full min-w-0 rounded-2xl transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+      className="group flex w-full min-w-0 rounded-2xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
     >
       <ListingCardView
         title={listing.title}

@@ -8,8 +8,6 @@ const T = ORGANIZATION_DETAIL_TEXT;
 interface OrganizationFieldRowProps {
   label: string;
   value: string | null | undefined;
-  /** Что показать вместо пустого значения: «Не указано» или «Появится после проверки». */
-  emptyText?: string;
   /** Звёздочка: поле нужно для публикации объявлений. */
   required?: boolean;
   /** Есть только у полей магазина: «Изменить», у пустого значения «Заполнить». */
@@ -21,7 +19,6 @@ interface OrganizationFieldRowProps {
 export function OrganizationFieldRow({
   label,
   value,
-  emptyText = T.empty,
   required = false,
   onEdit,
 }: OrganizationFieldRowProps) {
@@ -41,7 +38,7 @@ export function OrganizationFieldRow({
           )}
         </p>
         <p className={cn("text-base break-words", empty && "text-muted-foreground")}>
-          {empty ? emptyText : value}
+          {empty ? T.empty : value}
         </p>
       </div>
       {onEdit && (

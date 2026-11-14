@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { memo, useEffect, useMemo, useState } from "react";
 import {
@@ -68,6 +69,15 @@ const ORGANIZATION_ERRORS: Record<string, string> = {
     "Организация не подтверждена, от её имени нельзя подать объявление. Выберите другую организацию.",
 };
 
+/**
+ * У организации не заполнены название магазина, телефон или email. Список полей
+ * не показываем: страница организации сама отмечает пустые поля.
+ */
+const PROFILE_INCOMPLETE_TEXT = {
+  message: "Заполните данные организации, чтобы подать объявление",
+  link: "Заполнить данные",
+};
+
 interface ListingFormProps {
   /** Выбор живёт над формой (`OrganizationSelect`); `""`, пока ничего не выбрано. */
   organizationId: string;
@@ -101,6 +111,8 @@ export const ListingForm = memo(function ListingForm({
 }: ListingFormProps) {
   const router = useRouter();
   const [published, setPublished] = useState(false);
+  /** Организация из отправки, получившей `organization_profile_incomplete_error`: ссылка ведёт на неё. */
+  const [incompleteOrganizationId, setIncompleteOrganizationId] = useState<string | null>(null);
 
   const schema = useMemo(() => buildListingSchema(groups, references), [groups, references]);
   const form = useForm<ListingFormValues, unknown, ListingFormOutput>({
@@ -230,6 +242,15 @@ export const ListingForm = memo(function ListingForm({
     } catch (error) {
       if (!isApiError(error)) {
         showFormError(error, setError);
+        return;
+      }
+      if (error.errorCode === ERROR_CODES.organizationProfileIncomplete) {
+        // Ошибка формы, а не поля; введённые данные остаются. Список организаций не устарел.
+        setIncompleteOrganizationId(values.organization_id);
+        setError("root", {
+          type: ERROR_CODES.organizationProfileIncomplete,
+          message: PROFILE_INCOMPLETE_TEXT.message,
+        });
         return;
       }
       const organizationMessage = error.errorCode ? ORGANIZATION_ERRORS[error.errorCode] : undefined;
@@ -400,7 +421,19 @@ export const ListingForm = memo(function ListingForm({
           </FormSection>
         </Accordion>
 
-        <FormMessage message={errors.root?.message} />
+        {errors.root?.type === ERROR_CODES.organizationProfileIncomplete && incompleteOrganizationId ? (
+          <div role="alert" className="flex flex-col gap-1 text-sm">
+            <p className="text-destructive">{errors.root.message}</p>
+            <Link
+              href={`/account/organizations/${incompleteOrganizationId}`}
+              className="self-start text-primary underline-offset-4 hover:underline"
+            >
+              {PROFILE_INCOMPLETE_TEXT.link}
+            </Link>
+          </div>
+        ) : (
+          <FormMessage message={errors.root?.message} />
+        )}
 
         <div className="flex flex-col gap-2">
           {/* Без блокировки по заполненности: ошибки показываются по нажатию. */}

@@ -18,12 +18,12 @@ export const KIND_ORDER = ["individual", "company"] as const satisfies readonly 
 
 /**
  * В карточке только тег: пояснений текстом нет (docs/pages/organizations.md).
- * `verified` в интерфейсе «Найдена» (docs/pages/organization-detail.md), значение в API прежнее.
+ * Значения enum в API прежние, меняются только подписи.
  */
 export const STATUS_LABELS: Record<RegistryStatus, { badge: string }> = {
-  pending: { badge: "Проверяем" },
-  verified: { badge: "Найдена" },
-  not_found: { badge: "Не найдена в реестре" },
+  pending: { badge: "Проверяем организацию" },
+  verified: { badge: "Организация найдена" },
+  not_found: { badge: "Организация не найдена" },
 };
 
 export const ORGANIZATIONS_TEXT = {
@@ -77,8 +77,7 @@ export const ORGANIZATION_DETAIL_TEXT = {
   shopSection: "Данные магазина",
   legalName: "Полное наименование организации",
   legalAddress: "Юридический адрес",
-  /** `legal_*` пока нет (`pending`, `not_found`). */
-  afterCheck: "Появится после проверки",
+  /** Любое пустое значение, в том числе юридические данные до проверки. */
   empty: "Не указано",
   edit: "Изменить",
   fill: "Заполнить",

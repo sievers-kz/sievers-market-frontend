@@ -150,8 +150,6 @@ export function OrganizationDetailView({ organizationId }: { organizationId: str
   const org = state.organization;
   const canDelete = org.registry_status === "pending" || org.registry_status === "not_found";
   const title = org.shop_name || org.legal_name || ORGANIZATIONS_TEXT.fallbackTitle;
-  // Юридических данных нет, пока организация не найдена в реестре.
-  const legalEmpty = org.registry_status === "verified" ? T.empty : T.afterCheck;
 
   const openEdit = (field: ShopField, trigger: HTMLElement) => {
     editTriggerRef.current = trigger;
@@ -204,13 +202,9 @@ export function OrganizationDetailView({ organizationId }: { organizationId: str
         <h2 id="organization-main" className="text-base font-semibold">
           {T.mainSection}
         </h2>
-        <OrganizationFieldRow label={T.legalName} value={org.legal_name} emptyText={legalEmpty} />
+        <OrganizationFieldRow label={T.legalName} value={org.legal_name} />
         <OrganizationFieldRow label={KIND_LABELS[org.kind].taxId} value={org.tax_id} />
-        <OrganizationFieldRow
-          label={T.legalAddress}
-          value={org.legal_address}
-          emptyText={legalEmpty}
-        />
+        <OrganizationFieldRow label={T.legalAddress} value={org.legal_address} />
       </section>
 
       <section aria-labelledby="organization-shop" className="flex flex-col rounded-2xl bg-card px-6 pt-6 pb-2">

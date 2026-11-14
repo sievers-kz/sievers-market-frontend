@@ -22,6 +22,12 @@ export interface RequestOptions {
   next?: { revalidate?: number | false; tags?: string[] };
   cache?: RequestCache;
   signal?: AbortSignal;
+  /**
+   * Пробрасывать cookie входящего запроса (только сервер, по умолчанию `true`).
+   * Для публичных справочников ставь `false`: `cookies()` делает динамической
+   * каждую страницу, где вызван запрос, в том числе через общий layout.
+   */
+  forwardCookies?: boolean;
 }
 
 const isServer = typeof window === "undefined";
@@ -74,7 +80,7 @@ export async function apiFetch<T>(
   const headers: Record<string, string> = { "X-Client-Type": "web" };
   if (options.body !== undefined) headers["Content-Type"] = "application/json";
 
-  if (isServer) {
+  if (isServer && options.forwardCookies !== false) {
     const cookie = await serverCookieHeader();
     if (cookie) headers.Cookie = cookie;
   }

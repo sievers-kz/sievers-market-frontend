@@ -16,7 +16,8 @@ interface SubcategoryNavProps {
 /**
  * Выбор одной подкатегории. Каждый пункт — ссылка: страница сбрасывается на 1, вид сохраняется.
  * На мобильных — горизонтальная строка, с `lg` — вертикальный список в сайдбаре.
- * Сайдбар плоский: без фона, рамки и тени, выделен только активный пункт.
+ * Сайдбар плоский: без фона, рамки и тени, выделен только активный пункт. В строке на телефоне
+ * неактивные пункты на `bg-muted`, чтобы читались как кнопки (как вкладки кабинета).
  */
 export function SubcategoryNav({
   categoryId,
@@ -49,7 +50,7 @@ export function SubcategoryNav({
                   "block rounded-lg px-4 py-2 text-sm whitespace-nowrap transition-colors lg:whitespace-normal",
                   isActive
                     ? "bg-accent font-medium text-accent-foreground"
-                    : "hover:bg-muted",
+                    : "bg-muted lg:bg-transparent lg:hover:bg-muted",
                 )}
               >
                 {item.name}

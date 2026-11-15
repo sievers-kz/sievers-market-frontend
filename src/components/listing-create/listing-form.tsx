@@ -78,7 +78,7 @@ export const ORGANIZATION_INCOMPLETE_ERROR_TYPE = ERROR_CODES.organizationProfil
 
 const ORGANIZATION_INCOMPLETE_ERROR = {
   type: ORGANIZATION_INCOMPLETE_ERROR_TYPE,
-  message: ORGANIZATION_SUMMARY_TEXT.incomplete,
+  message: ORGANIZATION_SUMMARY_TEXT.error,
 };
 
 interface ListingFormProps {

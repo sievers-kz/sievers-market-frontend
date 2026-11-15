@@ -114,7 +114,7 @@ export function ListingCreateFlow({
           value={organizationId}
           onChange={setChosenOrganizationId}
           error={selectError}
-          invalid={Boolean(summaryError)}
+          hasError={Boolean(organizationError)}
           describedById={summaryError ? ORGANIZATION_SUMMARY_MESSAGE_ID : undefined}
         >
           {organizationDetails.state.status !== "idle" && (

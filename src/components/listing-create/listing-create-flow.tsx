@@ -9,7 +9,7 @@ import type { components } from "@/lib/api/schema";
 import type { ReferenceSources } from "./attribute-field-input";
 import { CatalogPicker, EMPTY_SELECTION, type CatalogSelection } from "./catalog-picker";
 import { FormSectionsSkeleton } from "./form-sections-skeleton";
-import { ListingForm } from "./listing-form";
+import { ListingForm, ORGANIZATION_INCOMPLETE_ERROR_TYPE } from "./listing-form";
 import { ListingPreview } from "./listing-preview";
 import {
   EMPTY_PREVIEW_FIELDS,
@@ -18,7 +18,9 @@ import {
 } from "./listing-preview-data";
 import { sortGroups, type AttributeGroup } from "./listing-schema";
 import { OrganizationSelect, resolveOrganizationId } from "./organization-select";
+import { ORGANIZATION_SUMMARY_MESSAGE_ID, OrganizationSummary } from "./organization-summary";
 import { useImageUploads } from "./use-image-uploads";
+import { missingFieldsOf, useOrganizationDetails } from "./use-organization-details";
 
 type Rubric = components["schemas"]["RubricResponse"];
 
@@ -52,7 +54,17 @@ export function ListingCreateFlow({
   const [chosenOrganizationId, setChosenOrganizationId] = useState("");
   const organizationId = resolveOrganizationId(organizations, chosenOrganizationId);
   /** Ошибка поля `organization_id` из формы: само поле стоит над выбором каталога. */
-  const [organizationError, setOrganizationError] = useState<string | undefined>();
+  const [organizationError, setOrganizationError] = useState<
+    { message: string; type: string } | undefined
+  >();
+  const organizationDetails = useOrganizationDetails(organizationId, onOrganizationsStale);
+  const organizationIncomplete = missingFieldsOf(organizationDetails.state).length > 0;
+  // «Не хватает данных» показывает блок данных, остальные ошибки (не выбрана) селект.
+  const summaryError =
+    organizationError?.type === ORGANIZATION_INCOMPLETE_ERROR_TYPE
+      ? organizationError.message
+      : undefined;
+  const selectError = summaryError ? undefined : organizationError?.message;
   const [selection, setSelection] = useState<CatalogSelection>(EMPTY_SELECTION);
   const [formState, setFormState] = useState<FormState>({ status: "idle" });
   const requestRef = useRef<AbortController | null>(null);
@@ -101,8 +113,19 @@ export function ListingCreateFlow({
           organizations={organizations}
           value={organizationId}
           onChange={setChosenOrganizationId}
-          error={organizationError}
-        />
+          error={selectError}
+          invalid={Boolean(summaryError)}
+          describedById={summaryError ? ORGANIZATION_SUMMARY_MESSAGE_ID : undefined}
+        >
+          {organizationDetails.state.status !== "idle" && (
+            <OrganizationSummary
+              organizationId={organizationId}
+              state={organizationDetails.state}
+              onRetry={organizationDetails.reload}
+              error={summaryError}
+            />
+          )}
+        </OrganizationSelect>
         <CatalogPicker tree={tree} value={selection} onChange={handleSelectionChange} />
 
         {formState.status === "idle" && (
@@ -129,6 +152,8 @@ export function ListingCreateFlow({
             organizationId={organizationId}
             onOrganizationError={setOrganizationError}
             onOrganizationsStale={onOrganizationsStale}
+            organizationIncomplete={organizationIncomplete}
+            onOrganizationProfileIncomplete={organizationDetails.reload}
             categoryId={selection.categoryId}
             subcategoryId={selection.subcategoryId}
             groups={formState.groups}

@@ -2,9 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoaderCircle } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import {
   Controller,
   FormProvider,
@@ -44,6 +43,7 @@ import {
 import type { ListingPreviewFields } from "./listing-preview-data";
 import { ListingPreviewWatcher } from "./listing-preview-watcher";
 import { ORGANIZATION_FIELD_ID } from "./organization-select";
+import { ORGANIZATION_SUMMARY_TEXT } from "./organization-summary";
 import { SelectField } from "./select-field";
 import type { ImageUploads } from "./use-image-uploads";
 
@@ -70,20 +70,27 @@ const ORGANIZATION_ERRORS: Record<string, string> = {
 };
 
 /**
- * У организации не заполнены название магазина, телефон или email. Список полей
- * не показываем: страница организации сама отмечает пустые поля.
+ * Тип ошибки поля `organization_id`, когда у организации непустой `missing_fields`
+ * (до отправки) или пришёл 403 `organization_profile_incomplete_error`. Текст
+ * показывает блок данных организации, а не подпись под селектом.
  */
-const PROFILE_INCOMPLETE_TEXT = {
-  message: "Заполните данные организации, чтобы подать объявление",
-  link: "Заполнить данные",
+export const ORGANIZATION_INCOMPLETE_ERROR_TYPE = ERROR_CODES.organizationProfileIncomplete;
+
+const ORGANIZATION_INCOMPLETE_ERROR = {
+  type: ORGANIZATION_INCOMPLETE_ERROR_TYPE,
+  message: ORGANIZATION_SUMMARY_TEXT.incomplete,
 };
 
 interface ListingFormProps {
   /** Выбор живёт над формой (`OrganizationSelect`); `""`, пока ничего не выбрано. */
   organizationId: string;
-  /** Ошибка поля организации: поле стоит вне формы и показывает её само. */
-  onOrganizationError: (message: string | undefined) => void;
+  /** Ошибка поля организации: поле стоит вне формы и показывает её само. Колбэк стабильный. */
+  onOrganizationError: (error: { message: string; type: string } | undefined) => void;
   onOrganizationsStale: () => void;
+  /** У выбранной организации непустой `missing_fields`: отправку не начинаем. */
+  organizationIncomplete: boolean;
+  /** Пришёл 403 `organization_profile_incomplete_error`: перечитать данные организации. */
+  onOrganizationProfileIncomplete: () => void;
   categoryId: string;
   subcategoryId: string;
   /** Уже отсортированы по `position`. */
@@ -101,6 +108,8 @@ export const ListingForm = memo(function ListingForm({
   organizationId,
   onOrganizationError,
   onOrganizationsStale,
+  organizationIncomplete,
+  onOrganizationProfileIncomplete,
   categoryId,
   subcategoryId,
   groups,
@@ -111,8 +120,6 @@ export const ListingForm = memo(function ListingForm({
 }: ListingFormProps) {
   const router = useRouter();
   const [published, setPublished] = useState(false);
-  /** Организация из отправки, получившей `organization_profile_incomplete_error`: ссылка ведёт на неё. */
-  const [incompleteOrganizationId, setIncompleteOrganizationId] = useState<string | null>(null);
 
   const schema = useMemo(() => buildListingSchema(groups, references), [groups, references]);
   const form = useForm<ListingFormValues, unknown, ListingFormOutput>({
@@ -136,6 +143,7 @@ export const ListingForm = memo(function ListingForm({
     handleSubmit,
     setError,
     setValue,
+    clearErrors,
     formState: { errors, isSubmitting, isSubmitSuccessful, isSubmitted },
   } = form;
 
@@ -176,10 +184,29 @@ export const ListingForm = memo(function ListingForm({
     setValue("organization_id", organizationId, { shouldValidate: isSubmitted });
   }, [organizationId, isSubmitted, setValue]);
 
-  const organizationError = errors.organization_id?.message;
+  const organizationErrorMessage = errors.organization_id?.message;
+  const organizationErrorType = errors.organization_id?.type;
   useEffect(() => {
-    onOrganizationError(organizationError);
-  }, [organizationError, onOrganizationError]);
+    onOrganizationError(
+      organizationErrorMessage
+        ? { message: organizationErrorMessage, type: String(organizationErrorType) }
+        : undefined,
+    );
+  }, [organizationErrorMessage, organizationErrorType, onOrganizationError]);
+
+  // Данные заполнили (перечитали после возврата на вкладку): ошибка «не хватает данных» уходит.
+  // Только на переходе: после 403 при устаревших «полных» данных ошибка должна остаться.
+  const wasIncompleteRef = useRef(organizationIncomplete);
+  useEffect(() => {
+    if (
+      wasIncompleteRef.current &&
+      !organizationIncomplete &&
+      organizationErrorType === ORGANIZATION_INCOMPLETE_ERROR_TYPE
+    ) {
+      clearErrors("organization_id");
+    }
+    wasIncompleteRef.current = organizationIncomplete;
+  }, [organizationIncomplete, organizationErrorType, clearErrors]);
   // Форма пересоздаётся при смене подкатегории: ошибка старой формы не должна остаться.
   useEffect(() => () => onOrganizationError(undefined), [onOrganizationError]);
 
@@ -201,8 +228,29 @@ export const ListingForm = memo(function ListingForm({
     setFocusTarget({ id: fields[0].domId });
   }
 
+  /** Ошибка ставится тем же путём, что и ошибка поля `organization_id`. */
+  function markOrganizationIncomplete() {
+    setError("organization_id", ORGANIZATION_INCOMPLETE_ERROR);
+  }
+
   function onInvalid(fieldErrors: FieldErrors<ListingFormValues>) {
-    revealErrors(orderedFields.filter((field) => get(fieldErrors, field.name)).map((f) => f.name));
+    const failing = orderedFields.filter((field) => get(fieldErrors, field.name)).map((f) => f.name);
+    if (organizationIncomplete && !fieldErrors.organization_id) {
+      // Показываем вместе с остальными; организация первая по порядку.
+      markOrganizationIncomplete();
+      failing.unshift("organization_id");
+    }
+    revealErrors(failing);
+  }
+
+  function onValid(values: ListingFormOutput) {
+    if (organizationIncomplete) {
+      // Правило из `missing_fields`: запрос не отправляем.
+      markOrganizationIncomplete();
+      revealErrors(["organization_id"]);
+      return;
+    }
+    return onSubmit(values);
   }
 
   const attributeKeys = useMemo(
@@ -245,12 +293,11 @@ export const ListingForm = memo(function ListingForm({
         return;
       }
       if (error.errorCode === ERROR_CODES.organizationProfileIncomplete) {
-        // Ошибка формы, а не поля; введённые данные остаются. Список организаций не устарел.
-        setIncompleteOrganizationId(values.organization_id);
-        setError("root", {
-          type: ERROR_CODES.organizationProfileIncomplete,
-          message: PROFILE_INCOMPLETE_TEXT.message,
-        });
+        // Данные устарели или не загрузились: ошибка на блоке организации и перечитывание.
+        // Введённые данные остаются, список организаций не устарел.
+        markOrganizationIncomplete();
+        revealErrors(["organization_id"]);
+        onOrganizationProfileIncomplete();
         return;
       }
       const organizationMessage = error.errorCode ? ORGANIZATION_ERRORS[error.errorCode] : undefined;
@@ -298,7 +345,7 @@ export const ListingForm = memo(function ListingForm({
   return (
     <FormProvider {...form}>
       <form
-        onSubmit={handleSubmit(onSubmit, onInvalid)}
+        onSubmit={handleSubmit(onValid, onInvalid)}
         noValidate
         className="flex flex-col gap-6"
       >
@@ -421,19 +468,7 @@ export const ListingForm = memo(function ListingForm({
           </FormSection>
         </Accordion>
 
-        {errors.root?.type === ERROR_CODES.organizationProfileIncomplete && incompleteOrganizationId ? (
-          <div role="alert" className="flex flex-col gap-1 text-sm">
-            <p className="text-destructive">{errors.root.message}</p>
-            <Link
-              href={`/account/organizations/${incompleteOrganizationId}`}
-              className="self-start text-primary underline-offset-4 hover:underline"
-            >
-              {PROFILE_INCOMPLETE_TEXT.link}
-            </Link>
-          </div>
-        ) : (
-          <FormMessage message={errors.root?.message} />
-        )}
+        <FormMessage message={errors.root?.message} />
 
         <div className="flex flex-col gap-2">
           {/* Без блокировки по заполненности: ошибки показываются по нажатию. */}

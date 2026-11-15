@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { KIND_LABELS } from "@/components/account/organization-labels";
 import { Label } from "@/components/ui/label";
@@ -45,7 +46,14 @@ interface OrganizationSelectProps {
   organizations: readonly OrganizationListItem[];
   value: string;
   onChange: (organizationId: string) => void;
+  /** Ошибка под селектом. */
   error?: string;
+  /** Поле невалидно, а текст ошибки показан в другом месте (блок данных организации). */
+  invalid?: boolean;
+  /** id элемента с этим текстом: добавляется в `aria-describedby`. */
+  describedById?: string;
+  /** Блок данных выбранной организации: рисуется в той же карточке под выбором. */
+  children?: ReactNode;
 }
 
 /**
@@ -53,7 +61,15 @@ interface OrganizationSelectProps {
  * (docs/pages/listing-create.md, «Организация»): компонент не знает о раскладке формы,
  * его можно перенести или заменить карточками.
  */
-export function OrganizationSelect({ organizations, value, onChange, error }: OrganizationSelectProps) {
+export function OrganizationSelect({
+  organizations,
+  value,
+  onChange,
+  error,
+  invalid = false,
+  describedById,
+  children,
+}: OrganizationSelectProps) {
   const verified = organizations.filter((item) => item.registry_status === "verified");
   const hasUnverified = verified.length < organizations.length;
   // Без подтверждённых (их могли удалить после открытия формы) ссылка нужна в любом случае.
@@ -61,7 +77,9 @@ export function OrganizationSelect({ organizations, value, onChange, error }: Or
   const selected = verified.find((item) => item.id === value);
   const errorId = `${ORGANIZATION_FIELD_ID}-error`;
   const hintId = `${ORGANIZATION_FIELD_ID}-hint`;
-  const describedBy = [error && errorId, showHint && hintId].filter(Boolean).join(" ");
+  const describedBy = [error && errorId, describedById, showHint && hintId]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <section aria-label={TEXT.label} className="flex flex-col gap-2 rounded-2xl bg-card p-6">
@@ -75,7 +93,7 @@ export function OrganizationSelect({ organizations, value, onChange, error }: Or
         <SelectTrigger
           id={ORGANIZATION_FIELD_ID}
           className="w-full"
-          aria-invalid={Boolean(error)}
+          aria-invalid={Boolean(error) || invalid}
           aria-describedby={describedBy || undefined}
         >
           <SelectValue placeholder={verified.length === 0 ? TEXT.noVerified : TEXT.placeholder}>
@@ -108,6 +126,7 @@ export function OrganizationSelect({ organizations, value, onChange, error }: Or
           </Link>
         </p>
       )}
+      {children && <div className="mt-2">{children}</div>}
     </section>
   );
 }

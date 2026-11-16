@@ -1,37 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import { getAvatarInitials, getDisplayName } from "@/components/layout/user-display";
+import { useHeaderUser } from "@/components/layout/header-user-provider";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getCurrentUser, type CurrentUser } from "@/lib/api";
 
-type UserState = { status: "loading" } | { status: "ready"; user: CurrentUser | null };
+/** Как в меню аватара шапки, когда ФИО не задано. */
+const FALLBACK_NAME = "Пользователь";
 
 /**
- * Аватар, «Фамилия Имя» и почта вверху сайдбара (только `lg+`).
- * Свой запрос: `HeaderUserProvider` оборачивает только шапку, каркасу его контекст недоступен.
- * Ошибки считаем гостем (`null`): блок не показываем, вход проверяет сама страница.
+ * Аватар, «Фамилия Имя» (или «Пользователь») и почта вверху сайдбара (только `lg+`).
+ * Своего запроса нет: пользователь из `HeaderUserProvider` (layout `(site)`), поэтому
+ * после правки на странице «Аккаунт» блок обновляется вместе с шапкой.
+ * Гостя и ошибку провайдер сводит к `null`: блок не показываем, вход проверяет страница.
  */
 export function AccountUserBlock() {
-  const [state, setState] = useState<UserState>({ status: "loading" });
-
-  useEffect(() => {
-    let active = true;
-    getCurrentUser()
-      .catch(() => null)
-      .then((user) => {
-        if (active) setState({ status: "ready", user });
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const { state } = useHeaderUser();
 
   const user = state.status === "ready" ? state.user : null;
   if (state.status === "ready" && !user) return null;
 
-  const displayName = user ? getDisplayName(user) : null;
+  const displayName = user ? (getDisplayName(user) ?? FALLBACK_NAME) : "";
 
   return (
     <div className="mb-4 hidden h-16 items-center gap-4 border-b border-border pb-4 lg:flex">
@@ -44,8 +32,12 @@ export function AccountUserBlock() {
             {getAvatarInitials(user)}
           </span>
           <div className="flex min-w-0 flex-1 flex-col">
-            {displayName && <p className="truncate font-semibold">{displayName}</p>}
-            <p className="truncate text-sm text-muted-foreground">{user.email}</p>
+            <p title={displayName} className="truncate font-semibold">
+              {displayName}
+            </p>
+            <p title={user.email} className="truncate text-sm text-muted-foreground">
+              {user.email}
+            </p>
           </div>
         </>
       ) : (

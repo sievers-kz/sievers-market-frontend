@@ -13,6 +13,13 @@ export {
   resendConfirmationCode,
 } from "./auth";
 export type { CurrentUser } from "./auth";
+export {
+  changeCustomerFullname,
+  confirmEmailChange,
+  confirmPasswordChange,
+  requestEmailChange,
+  requestPasswordChange,
+} from "./account";
 export { ERROR_CODES } from "./error-codes";
 export { uploadToPresignedUrl } from "./upload";
 export { findCategory, getCategoryTree, getSubcategoryForm } from "./catalog";

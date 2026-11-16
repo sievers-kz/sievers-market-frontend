@@ -18,4 +18,11 @@ export const ERROR_CODES = {
   invalidPhoneFormat: "invalid_phone_format_error",
   listingNotFound: "listing_not_found_error",
   listingDeleted: "listing_deleted_error",
+  // Аккаунт (docs/pages/account.md): в OpenAPI ответы ошибок `unknown`, коды из бэкенда.
+  passwordMismatch: "password_mismatch_error",
+  emailChangeRequestNotFound: "email_change_request_not_found_error",
+  passwordChangeRequestNotFound: "password_change_request_not_found_error",
+  invalidFullnameFormat: "invalid_fullname_format_error",
+  fullnameRequired: "fullname_required_error",
+  customerProfileRequired: "customer_profile_required_error",
 } as const;

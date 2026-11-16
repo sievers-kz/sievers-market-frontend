@@ -8,11 +8,13 @@ interface FormFieldProps {
   error?: string;
   /** Звёздочка у обязательного поля. */
   required?: boolean;
+  /** Подсказка под полем; поле ссылается на неё через `aria-describedby={`${id}-hint`}`. */
+  hint?: string;
   children: ReactNode;
 }
 
 /** Подпись и ошибка поля. Само поле ссылается на ошибку через `aria-describedby={`${id}-error`}`. */
-export function FormField({ id, label, error, required, children }: FormFieldProps) {
+export function FormField({ id, label, error, required, hint, children }: FormFieldProps) {
   return (
     <div className="flex flex-col gap-2">
       <Label htmlFor={id}>
@@ -24,6 +26,11 @@ export function FormField({ id, label, error, required, children }: FormFieldPro
         )}
       </Label>
       {children}
+      {hint && (
+        <p id={`${id}-hint`} className="text-sm text-muted-foreground">
+          {hint}
+        </p>
+      )}
       {error && (
         <p id={`${id}-error`} className="text-sm text-destructive">
           {error}

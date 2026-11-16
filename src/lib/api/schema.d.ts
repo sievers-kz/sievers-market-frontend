@@ -1029,6 +1029,10 @@ export interface paths {
          *     Объявление размещается от имени организации из `organization_id`. Организация должна принадлежать
          *     текущему покупателю (иначе `404`) и быть подтверждённой в реестре, `registry_status: verified`
          *     (иначе `403`). Список организаций для выбора — `GET /api/v1/customer/organizations`.
+         *
+         *     Категория должна существовать, а подкатегория — принадлежать этой категории, иначе `404`
+         *     `catalog_not_found_error` (`metadata.field` — id не найденного объекта). Подкатегория без
+         *     заданных атрибутов допустима.
          */
         post: operations["createListing"];
         delete?: never;
@@ -1113,6 +1117,8 @@ export interface paths {
         /**
          * Изменение атрибутов объявления
          * @description Обновляет значения динамических атрибутов объявления в рамках подкатегории.
+         *
+         *     `subcategory_id` должен совпадать с подкатегорией объявления, иначе `404` `catalog_not_found_error`.
          */
         patch: operations["changeListingAttribute"];
         trace?: never;
@@ -1229,6 +1235,35 @@ export interface paths {
          * @description Возвращает постраничный список карточек объявлений по категории/подкатегории.
          */
         get: operations["getListingsCatalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/listing/my": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Мои объявления
+         * @description Возвращает постраничный список объявлений всех организаций текущего покупателя (кабинет).
+         *
+         *     Читает из базы, а не из поискового индекса, поэтому видны и неактивные объявления. Удалённые не
+         *     возвращаются. Без `status` приходят активные, неактивные и архивные.
+         *
+         *     Фильтры: `status` (`active`, `inactive`, `archived`), `organization_id` (организация должна
+         *     принадлежать текущему покупателю, иначе `404`), `category_id`. Сортировка `sort`: `newest`
+         *     (по умолчанию) или `oldest` по дате создания. `limit` от 1 до 50.
+         *
+         *     `preview_image` и `city` могут быть `null` (нет фото или города).
+         */
+        get: operations["getMyListings"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1994,6 +2029,11 @@ export interface components {
              */
             limit: number;
         };
+        /**
+         * ListingStatus
+         * @enum {string}
+         */
+        ListingStatus: "active" | "inactive" | "archived" | "deleted";
         /** LoginAccount */
         LoginAccount: {
             /**
@@ -2016,6 +2056,52 @@ export interface components {
          * @enum {string}
          */
         MediaType: "image/png" | "image/jpeg" | "image/webp";
+        /** MyListingCardResponse */
+        MyListingCardResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Title */
+            title: string | null;
+            /** Price */
+            price: number | null;
+            /** Currency */
+            currency: string | null;
+            status: components["schemas"]["ListingStatus"];
+            /** Category */
+            category: string;
+            /** Subcategory */
+            subcategory: string;
+            /**
+             * Organization Id
+             * Format: uuid
+             */
+            organization_id: string;
+            /** Organization Name */
+            organization_name: string | null;
+            /** City */
+            city: string | null;
+            /** Preview Image */
+            preview_image: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /**
+         * MyListingsSort
+         * @enum {string}
+         */
+        MyListingsSort: "newest" | "oldest";
+        /**
+         * MyListingsStatus
+         * @description Статусы, доступные в фильтре «Мои объявления». Удалённые объявления владельцу не показываются.
+         * @enum {string}
+         */
+        MyListingsStatus: "active" | "inactive" | "archived";
         /** OptionItem */
         OptionItem: {
             /** Key */
@@ -2090,6 +2176,17 @@ export interface components {
         PaginatedResponse_ListingCardResponse_: {
             /** Items */
             items: components["schemas"]["ListingCardResponse"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Pages */
+            pages: number;
+        };
+        /** PaginatedResponse[MyListingCardResponse] */
+        PaginatedResponse_MyListingCardResponse_: {
+            /** Items */
+            items: components["schemas"]["MyListingCardResponse"][];
             /** Total */
             total: number;
             /** Page */
@@ -4913,6 +5010,53 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PaginatedResponse_ListingCardResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    getMyListings: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["MyListingsStatus"] | null;
+                organization_id?: string | null;
+                category_id?: string | null;
+                sort?: components["schemas"]["MyListingsSort"];
+                page?: number;
+                limit?: number;
+            };
+            header?: {
+                "X-Client-Type"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_MyListingCardResponse_"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

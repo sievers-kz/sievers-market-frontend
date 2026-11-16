@@ -16,7 +16,7 @@ export type AccountNavGroup = AccountNavItem[];
 export const ACCOUNT_NAV_GROUPS: AccountNavGroup[] = [
   [
     { label: "Мои организации", href: "/account/organizations", icon: Building2 },
-    { label: "Мои объявления", href: null, icon: FileText },
+    { label: "Мои объявления", href: "/account/listings", icon: FileText },
     { label: "Избранное", href: null, icon: Heart },
     { label: "Профиль", href: null, icon: User },
   ],

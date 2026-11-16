@@ -6,7 +6,7 @@ export function getAvatarLetter(user: CurrentUser): string {
   return source.charAt(0).toUpperCase();
 }
 
-/** Строка с именем в меню: «Фамилия Имя», если оба заданы, иначе `null` (показываем только почту). */
+/** Строка с именем в меню: «Фамилия Имя», если оба заданы, иначе `null` (меню пишет «Пользователь», блок кабинета строку не показывает). */
 export function getDisplayName(user: CurrentUser): string | null {
   const lastName = user.last_name?.trim();
   const firstName = user.first_name?.trim();

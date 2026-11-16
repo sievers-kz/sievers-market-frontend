@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, ChevronDown, LogOut } from "lucide-react";
+import { Building2, ChevronDown, FileText, LogOut } from "lucide-react";
 import Link from "next/link";
 
 import {
@@ -45,14 +45,8 @@ export function UserMenu({
         className="w-64 max-w-[calc(100vw-32px)] p-2"
       >
         <DropdownMenuLabel className="flex flex-col gap-1 px-2 py-2 font-normal">
-          {displayName ? (
-            <>
-              <span className="truncate font-medium">{displayName}</span>
-              <span className="truncate text-muted-foreground">{user.email}</span>
-            </>
-          ) : (
-            <span className="truncate font-medium">{user.email}</span>
-          )}
+          <span className="truncate font-medium">{displayName ?? "Пользователь"}</span>
+          <span className="truncate text-xs text-muted-foreground">{user.email}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild className="px-2 py-2">
@@ -61,6 +55,13 @@ export function UserMenu({
             Мои организации
           </Link>
         </DropdownMenuItem>
+        <DropdownMenuItem asChild className="px-2 py-2">
+          <Link href="/account/listings">
+            <FileText aria-hidden />
+            Мои объявления
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem
           disabled={pending}
           onSelect={() => void logout()}

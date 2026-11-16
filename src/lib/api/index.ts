@@ -17,13 +17,18 @@ export { ERROR_CODES } from "./error-codes";
 export { uploadToPresignedUrl } from "./upload";
 export { findCategory, getCategoryTree, getSubcategoryForm } from "./catalog";
 export {
+  activateListing,
+  archiveListing,
   createListing,
+  deactivateListing,
+  deleteListing,
   getCreatedListingId,
   getListingDetails,
   getListingsCatalog,
   getMyListings,
 } from "./listing";
 export type {
+  ListingStatusAction,
   MyListingCard,
   MyListingsPage,
   MyListingsQuery,

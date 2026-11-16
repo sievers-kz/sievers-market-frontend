@@ -1,6 +1,7 @@
 import { ImageOff, MapPin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 import { formatPrice } from "@/components/catalog/format-price";
 import { getMediaUrl, type MyListingCard as MyListingCardData, type MyListingsStatus } from "@/lib/api";
@@ -11,6 +12,8 @@ import { MY_LISTING_STATUS_LABELS, MY_LISTINGS_TEXT } from "./my-listings-labels
 interface MyListingCardProps {
   /** Объявления со статусом `deleted` отбрасывает список, сюда они не попадают. */
   listing: MyListingCardData & { status: MyListingsStatus };
+  /** Меню «⋯»: в углу фото ниже `sm`, в углу текстовой колонки от `sm`, над ссылкой. */
+  actions?: ReactNode;
 }
 
 /**
@@ -25,8 +28,9 @@ function formatCardPrice(price: number, currency: string | null): string {
  * (фото 16/9 сверху). Только активное ведёт на страницу объявления: ссылка в названии растянута
  * на карточку (`after:inset-0`), чтобы потом рядом можно было положить кнопки действий.
  * Неактивное и архивное без ссылки и без ховера: страница объявления их не отдаёт.
+ * Меню действий лежит над растянутой ссылкой (`z-10`), а не внутри `<a>`.
  */
-export function MyListingCard({ listing }: MyListingCardProps) {
+export function MyListingCard({ listing, actions }: MyListingCardProps) {
   const { id, title, price, currency, status, subcategory, city } = listing;
   const isActive = status === "active";
   const organizationName = listing.organization_name || MY_LISTINGS_TEXT.organizationFallback;
@@ -63,7 +67,8 @@ export function MyListingCard({ listing }: MyListingCardProps) {
         </span>
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
+      {/* Под кнопку 40 + зазор 8 справа от названия (от `sm` кнопка в этой колонке). */}
+      <div className={cn("flex min-w-0 flex-1 flex-col gap-2", actions && "sm:pr-12")}>
         <h2 className="line-clamp-2 text-base font-semibold break-words">
           {isActive ? (
             <Link
@@ -92,6 +97,11 @@ export function MyListingCard({ listing }: MyListingCardProps) {
           </p>
         )}
       </div>
+
+      {/* Ниже `sm` угол фото (p-4 карточки + отступ 8), от `sm` угол текстовой колонки. */}
+      {actions && (
+        <div className="absolute top-6 right-6 z-10 sm:top-4 sm:right-4">{actions}</div>
+      )}
     </article>
   );
 }

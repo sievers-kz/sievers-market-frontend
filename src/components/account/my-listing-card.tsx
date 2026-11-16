@@ -76,14 +76,12 @@ export function MyListingCard({ listing }: MyListingCardProps) {
             title || <span className="font-normal text-muted-foreground">{MY_LISTINGS_TEXT.untitled}</span>
           )}
         </h2>
-        <div className="flex min-w-0 flex-col gap-1 text-sm text-muted-foreground">
-          <p className="truncate">
-            {category} · {subcategory}
-          </p>
-          <p className="truncate">
-            {MY_LISTINGS_TEXT.organizationPrefix} {organizationName}
-          </p>
-        </div>
+        <p className="truncate text-sm text-muted-foreground">
+          {category} · {subcategory}
+        </p>
+        <p className="truncate text-sm text-muted-foreground">
+          {MY_LISTINGS_TEXT.organizationPrefix} {organizationName}
+        </p>
         <p className="text-lg font-semibold">
           {price === null ? (
             <span className="font-normal text-muted-foreground">{MY_LISTINGS_TEXT.noPrice}</span>

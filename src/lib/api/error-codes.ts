@@ -16,4 +16,6 @@ export const ERROR_CODES = {
   organizationProfileIncomplete: "organization_profile_incomplete_error",
   invalidShopName: "invalid_shop_name_error",
   invalidPhoneFormat: "invalid_phone_format_error",
+  listingNotFound: "listing_not_found_error",
+  listingDeleted: "listing_deleted_error",
 } as const;

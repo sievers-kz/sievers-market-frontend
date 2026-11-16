@@ -74,3 +74,33 @@ export function getMyListings(
     signal,
   });
 }
+
+/** Действие над своим объявлением: `PATCH /api/v1/listing/{id}/<action>`, тела нет. */
+export type ListingStatusAction = "activate" | "deactivate" | "archive" | "delete";
+
+/**
+ * Ответ 200 в OpenAPI пустой (`unknown`, по спеке `{ message }`), тело не читаем: после
+ * действия список перечитывается. 404 `listing_not_found_error`, 409 `listing_deleted_error`.
+ */
+async function changeListingStatus(listingId: string, action: ListingStatusAction): Promise<void> {
+  await apiFetch<unknown>(`/api/v1/listing/${encodeURIComponent(listingId)}/${action}`, {
+    method: "PATCH",
+  });
+}
+
+export function activateListing(listingId: string): Promise<void> {
+  return changeListingStatus(listingId, "activate");
+}
+
+export function deactivateListing(listingId: string): Promise<void> {
+  return changeListingStatus(listingId, "deactivate");
+}
+
+export function archiveListing(listingId: string): Promise<void> {
+  return changeListingStatus(listingId, "archive");
+}
+
+/** Мягкое удаление: статус `deleted`, из «Моих объявлений» объявление пропадает. */
+export function deleteListing(listingId: string): Promise<void> {
+  return changeListingStatus(listingId, "delete");
+}

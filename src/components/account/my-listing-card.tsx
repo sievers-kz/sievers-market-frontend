@@ -27,7 +27,7 @@ function formatCardPrice(price: number, currency: string | null): string {
  * Неактивное и архивное без ссылки и без ховера: страница объявления их не отдаёт.
  */
 export function MyListingCard({ listing }: MyListingCardProps) {
-  const { id, title, price, currency, status, category, subcategory, city } = listing;
+  const { id, title, price, currency, status, subcategory, city } = listing;
   const isActive = status === "active";
   const organizationName = listing.organization_name || MY_LISTINGS_TEXT.organizationFallback;
 
@@ -76,9 +76,7 @@ export function MyListingCard({ listing }: MyListingCardProps) {
             title || <span className="font-normal text-muted-foreground">{MY_LISTINGS_TEXT.untitled}</span>
           )}
         </h2>
-        <p className="truncate text-sm text-muted-foreground">
-          {category} · {subcategory}
-        </p>
+        <p className="truncate text-sm text-muted-foreground">{subcategory}</p>
         <p className="truncate text-sm text-muted-foreground">
           {MY_LISTINGS_TEXT.organizationPrefix} {organizationName}
         </p>

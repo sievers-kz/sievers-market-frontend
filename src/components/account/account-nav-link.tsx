@@ -47,7 +47,7 @@ export function AccountNavLink({
     );
   }
 
-  const active = isAccountNavItemActive(pathname, item.href);
+  const active = isAccountNavItemActive(pathname, item.href, item.exact);
 
   return (
     <Link

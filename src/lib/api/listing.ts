@@ -1,5 +1,5 @@
 import { apiFetch } from "./client";
-import type { operations } from "./schema";
+import type { components, operations } from "./schema";
 
 type GetListingsCatalogQuery =
   operations["getListingsCatalog"]["parameters"]["query"];
@@ -52,4 +52,25 @@ export function getCreatedListingId(response: unknown): string | null {
   }
   const id = response.response;
   return typeof id === "string" && UUID_RE.test(id) ? id : null;
+}
+
+type Schemas = components["schemas"];
+
+export type MyListingCard = Schemas["MyListingCardResponse"];
+export type MyListingsStatus = Schemas["MyListingsStatus"];
+export type MyListingsSort = Schemas["MyListingsSort"];
+export type MyListingsQuery = NonNullable<operations["getMyListings"]["parameters"]["query"]>;
+export type MyListingsPage =
+  operations["getMyListings"]["responses"][200]["content"]["application/json"];
+
+/** Объявления всех организаций текущего пользователя (кабинет), из базы, без кэша. */
+export function getMyListings(
+  query: MyListingsQuery,
+  signal?: AbortSignal,
+): Promise<MyListingsPage> {
+  return apiFetch<MyListingsPage>("/api/v1/listing/my", {
+    query,
+    cache: "no-store",
+    signal,
+  });
 }

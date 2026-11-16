@@ -1,0 +1,255 @@
+"use client";
+
+import { FileText } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+
+import { Pagination } from "@/components/common/pagination";
+import { Button } from "@/components/ui/button";
+import {
+  ERROR_CODES,
+  getMyListings,
+  getOrganizations,
+  isApiError,
+  type MyListingCard as MyListingCardData,
+  type MyListingsPage,
+  type MyListingsStatus,
+  type OrganizationListItem,
+} from "@/lib/api";
+import type { CategoryTree } from "@/lib/api/catalog";
+import { cn } from "@/lib/utils";
+
+import { AccountPageHeader } from "./account-page-header";
+import { MY_LISTINGS_LOGIN_PATH } from "./login-path";
+import { MyListingCard } from "./my-listing-card";
+import { MyListingCardSkeleton } from "./my-listing-card-skeleton";
+import { MyListingsFilters, type MyListingsFilterChange } from "./my-listings-filters";
+import { MY_LISTINGS_TEXT } from "./my-listings-labels";
+import {
+  buildMyListingsHref,
+  hasMyListingsFilters,
+  MY_LISTINGS_PATH,
+  parseMyListingsParams,
+  toMyListingsQuery,
+} from "./my-listings-search-params";
+
+const NEW_LISTING_PATH = "/listings/new";
+
+/** Последний пришедший ответ и запрос, к которому он относится. */
+type Loaded =
+  | { key: string; status: "ready"; data: MyListingsPage; filtered: boolean }
+  | { key: string; status: "error" };
+
+type VisibleListing = MyListingCardData & { status: MyListingsStatus };
+
+/**
+ * В OpenAPI статус карточки шире фильтра (`deleted` тоже есть), хотя бэкенд обещает удалённые
+ * не отдавать. Если такие придут, не показываем.
+ */
+function isVisible(listing: MyListingCardData): listing is VisibleListing {
+  return listing.status !== "deleted";
+}
+
+function postListingButton(className?: string) {
+  return (
+    <Button
+      asChild
+      size="lg"
+      className={cn("w-full bg-cta text-cta-foreground hover:bg-cta/90 sm:w-auto", className)}
+    >
+      <Link href={NEW_LISTING_PATH}>{MY_LISTINGS_TEXT.postListing}</Link>
+    </Button>
+  );
+}
+
+/**
+ * Список читается в браузере: здесь работает refresh токена, 401 (уже после refresh) ведёт
+ * на вход. Фильтры и страница живут в URL; при смене фильтра старый список остаётся
+ * приглушённым до нового ответа, устаревшие ответы отменяются (`AbortController`).
+ */
+export function MyListingsView({ tree }: { tree: CategoryTree }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const params = useMemo(() => parseMyListingsParams(searchParams), [searchParams]);
+  const [attempt, setAttempt] = useState(0);
+  const requestKey = `${buildMyListingsHref(params)}#${attempt}`;
+  const [loaded, setLoaded] = useState<Loaded | null>(null);
+  const [organizations, setOrganizations] = useState<OrganizationListItem[]>([]);
+
+  // Организации нужны только для фильтра: при ошибке (кроме 401) фильтра просто нет.
+  useEffect(() => {
+    let active = true;
+    getOrganizations().then(
+      (items) => {
+        if (active) setOrganizations(items);
+      },
+      (error: unknown) => {
+        if (active && isApiError(error) && error.status === 401) {
+          router.replace(MY_LISTINGS_LOGIN_PATH);
+        }
+      },
+    );
+    return () => {
+      active = false;
+    };
+  }, [router]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const href = buildMyListingsHref(params);
+    const key = `${href}#${attempt}`;
+
+    getMyListings(toMyListingsQuery(params), controller.signal).then(
+      (data) => {
+        if (controller.signal.aborted) return;
+        setLoaded({ key, status: "ready", data, filtered: hasMyListingsFilters(params) });
+      },
+      (error: unknown) => {
+        if (controller.signal.aborted) return;
+        if (isApiError(error)) {
+          if (error.status === 401) {
+            router.replace(MY_LISTINGS_LOGIN_PATH);
+            return;
+          }
+          // Чужая или удалённая организация в URL: молча убираем параметр.
+          if (
+            error.status === 404 &&
+            error.errorCode === ERROR_CODES.organizationNotFound &&
+            params.organizationId
+          ) {
+            router.replace(buildMyListingsHref({ ...params, organizationId: undefined }), {
+              scroll: false,
+            });
+            return;
+          }
+          // Кривой параметр: сбрасываем всё (если сбрасывать нечего, это ошибка списка).
+          if (error.status === 422 && href !== MY_LISTINGS_PATH) {
+            router.replace(MY_LISTINGS_PATH, { scroll: false });
+            return;
+          }
+        }
+        setLoaded({ key, status: "error" });
+      },
+    );
+
+    return () => controller.abort();
+  }, [params, attempt, router]);
+
+  const pending = loaded?.key !== requestKey;
+
+  const handleFilterChange = (change: MyListingsFilterChange) => {
+    router.replace(buildMyListingsHref({ ...params, ...change, page: 1 }), { scroll: false });
+  };
+
+  const resetFilters = () => router.replace(MY_LISTINGS_PATH, { scroll: false });
+
+  const isEmptyAll =
+    loaded?.status === "ready" && loaded.data.total === 0 && !loaded.filtered;
+
+  return (
+    <>
+      {/* Когда объявлений нет совсем, кнопка стоит в пустом состоянии и в заголовке не дублируется. */}
+      <AccountPageHeader
+        title={MY_LISTINGS_TEXT.pageTitle}
+        action={isEmptyAll ? undefined : postListingButton()}
+      />
+
+      {!isEmptyAll && (
+        <MyListingsFilters
+          params={params}
+          organizations={organizations}
+          tree={tree}
+          onChange={handleFilterChange}
+        />
+      )}
+
+      {(loaded === null || (loaded.status === "error" && pending)) && (
+        <div role="status" aria-label={MY_LISTINGS_TEXT.loading} className="flex flex-col gap-4">
+          {[0, 1, 2].map((index) => (
+            <MyListingCardSkeleton key={index} />
+          ))}
+        </div>
+      )}
+
+      {loaded?.status === "error" && !pending && (
+        <div
+          role="alert"
+          className="flex flex-col items-center gap-4 rounded-2xl bg-card p-8 text-center"
+        >
+          <p>{MY_LISTINGS_TEXT.listError}</p>
+          <Button type="button" onClick={() => setAttempt((value) => value + 1)}>
+            {MY_LISTINGS_TEXT.retry}
+          </Button>
+        </div>
+      )}
+
+      {loaded?.status === "ready" && (
+        <div
+          aria-busy={pending || undefined}
+          className={cn("flex flex-col gap-4 transition-opacity", pending && "opacity-60")}
+        >
+          <MyListingsResults
+            data={loaded.data}
+            filtered={loaded.filtered}
+            onReset={resetFilters}
+            hrefFor={(page) => buildMyListingsHref({ ...params, page })}
+            current={params.page}
+          />
+        </div>
+      )}
+    </>
+  );
+}
+
+function MyListingsResults({
+  data,
+  filtered,
+  onReset,
+  hrefFor,
+  current,
+}: {
+  data: MyListingsPage;
+  filtered: boolean;
+  onReset: () => void;
+  hrefFor: (page: number) => string;
+  current: number;
+}) {
+  const items = data.items.filter(isVisible);
+
+  if (data.total === 0 && !filtered) {
+    return (
+      <div className="flex flex-col items-center gap-4 rounded-2xl bg-card px-4 py-12 text-center sm:px-8">
+        <span className="flex size-16 items-center justify-center rounded-full bg-accent text-primary">
+          <FileText aria-hidden className="size-8" />
+        </span>
+        <h2 className="text-xl font-semibold">{MY_LISTINGS_TEXT.emptyTitle}</h2>
+        <p className="max-w-md text-muted-foreground">{MY_LISTINGS_TEXT.empty}</p>
+        {postListingButton()}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {items.length > 0 ? (
+        <ul className="flex flex-col gap-4">
+          {items.map((listing) => (
+            <li key={listing.id} className="flex min-w-0 flex-col">
+              <MyListingCard listing={listing} />
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div className="flex flex-col items-center gap-4 rounded-2xl bg-card px-4 py-12 text-center sm:px-8">
+          <h2 className="text-xl font-semibold">{MY_LISTINGS_TEXT.notFoundTitle}</h2>
+          <p className="max-w-md text-muted-foreground">{MY_LISTINGS_TEXT.notFound}</p>
+          <Button type="button" variant="outline" onClick={onReset}>
+            {MY_LISTINGS_TEXT.resetFilters}
+          </Button>
+        </div>
+      )}
+      <Pagination current={current} pages={data.pages} hrefFor={hrefFor} />
+    </>
+  );
+}

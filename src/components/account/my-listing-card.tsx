@@ -77,9 +77,7 @@ export function MyListingCard({ listing }: MyListingCardProps) {
           )}
         </h2>
         <p className="truncate text-sm text-muted-foreground">{subcategory}</p>
-        <p className="truncate text-sm text-muted-foreground">
-          {MY_LISTINGS_TEXT.organizationPrefix} {organizationName}
-        </p>
+        <p className="truncate text-sm text-muted-foreground">{organizationName}</p>
         <p className="text-lg font-semibold">
           {price === null ? (
             <span className="font-normal text-muted-foreground">{MY_LISTINGS_TEXT.noPrice}</span>

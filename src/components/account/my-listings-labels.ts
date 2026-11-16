@@ -16,7 +16,6 @@ export const MY_LISTINGS_TEXT = {
   sortLabel: "Сортировка",
 
   untitled: "Без названия",
-  organizationPrefix: "Организация:",
   noPrice: "Цена не указана",
 
   loading: "Загружаем объявления",

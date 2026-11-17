@@ -29,6 +29,7 @@ export function ListingCard({ listing, view }: ListingCardProps) {
         organizationName={listing.organization_name}
         condition={listing.condition}
         createdAt={listing.created_at}
+        subcategory={listing.subcategory}
       />
     </Link>
   );

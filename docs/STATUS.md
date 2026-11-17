@@ -2,7 +2,7 @@
 
 Файл для агента: читай его в начале каждой задачи, потому что контекст чата очищается. В конце каждого PR обнови его (раздел «Сделано» и, если есть, «Решения», «Ограничения»). Держи коротким: только то, что не видно из кода и спецификаций экранов. Спецификации экранов лежат в `docs/pages/`.
 
-Обновлено: 17 ноября 2026 (SEO, `feature/seo`).
+Обновлено: 17 ноября 2026 (карточка каталога, `feature/catalog-card`).
 
 ## Переход на организации (11 ноября 2026)
 Бэкенд убрал роли `customer` / `vendor`, онбординг и `getMe`; один аккаунт, у него организации, объявление подаётся от имени организации. Работа идёт по `docs/pages/organizations-migration.md` тремя PR: 1) основа — **сделан** (`feature/customer-model`); 2) экран «Мои организации» (`docs/pages/organizations.md`) — **сделан** (`feature/organizations`); 3) выбор организации в форме объявления — **сделан** (`feature/listing-organization`). Переход завершён.
@@ -29,6 +29,7 @@
 - Меню аватара (`feature/header-menu`): пункт «Мои объявления» после «Мои организации», «Выйти» за разделителем; сверху имя («Пользователь», если ФИО не задано) и всегда почта мельче и серым. `getDisplayName` не менялся (его же читает `AccountUserBlock`), запасной текст подставляется в `UserMenu`.
 - Страница «Аккаунт» (`feature/account`): `/account`, `docs/pages/account.md`. `AccountView` (ФИО, email, пароль), строки `AccountFieldRow` (значение в одну строку с обрезкой; `OrganizationFieldRow` не тронут, разметка строки продублирована), диалоги `EditFullnameDialog`, `ChangeEmailDialog`, `ChangePasswordDialog` и общий шаг кода `AccountCodeStep`. API: `src/lib/api/account.ts` (`changeCustomerFullname`, `requestEmailChange`, `confirmEmailChange`, `requestPasswordChange`, `confirmPasswordChange`), шесть кодов в `ERROR_CODES`. Пункт сайдбара «Профиль» стал «Аккаунт» (`/account`, первым, `exact`). Над формой входа сообщение по `?reason=` (`login-reason.ts`). У `FormField` необязательный `hint`.
 - SEO (`feature/seo`): `src/lib/site.ts` (`SITE_URL`, `isIndexable()`), `robots.ts`, `sitemap.ts`, `metadataBase` и Open Graph в корневом `layout.tsx`, canonical у каталога и объявления, OG-картинка объявления, `noindex` для входа/регистрации и «Новое объявление».
+- Карточка каталога (`feature/catalog-card`): `docs/pages/catalog-card.md`. У `ListingCardView` необязательные `organizationName`, `condition`, `createdAt`: тег состояния на фото («Новый» `bg-primary`, «Б/У» `bg-card`), строка организации с `Store`, дата справа от города (`<time>`). Хелперы `getConditionLabel`, `formatListingDate` в `components/catalog/listing-card-format.ts`. В скелетоне полоска организации. `ListingPreview` не менялся.
 
 ## Решения, которые не видны из кода
 - **Сессия и прокси.** Бэкенд ставит cookie без `Domain`. Браузер ходит на свой origin `/api/v1/...`, rewrite в `next.config.ts` ведёт на `BACKEND_URL` (серверная переменная, читается при сборке; нужна в `.env.local` и в Vercel). Путь ровно `/api/v1`: refresh-cookie стоит с `Path=/api/v1/iam`. Нужен `skipTrailingSlashRedirect` (у части путей API слэш на конце). Сервер Next ходит на `BACKEND_URL` напрямую и пробрасывает `Cookie`.
@@ -78,6 +79,7 @@
 - **Правила пароля:** 8-64 символа (регистрация); код подтверждения 6 цифр, живёт 5 минут; повтор не раньше чем через 60 секунд (на фронтенде константа, backend#203).
 
 - **SEO и индексация.** Индексируется только сборка с `VERCEL_ENV=production` (`isIndexable()` в `src/lib/site.ts`); staging и preview закрыты (`Disallow: /` в `robots.txt`, `noindex` в корневых метаданных, пустой sitemap). Личные страницы production закрыты метатегом `noindex`, а не запретом в `robots.txt`: робот не прочитает метатег на запрещённой странице. Адрес сайта по умолчанию `https://market.sievers.kz`, можно переопределить `NEXT_PUBLIC_SITE_URL`. Sitemap: главная, категории, объявления (по страницам каталога, ISR 1 ч, сбой API не роняет сборку); подкатегории и страницы организаций пока не включены. Canonical у каталога без `?page=` и фильтров.
+- **Дата и состояние в карточке каталога.** Дата всегда в поясе `Asia/Almaty` (и год тоже), явно в `Intl.DateTimeFormat`: иначе сервер (UTC) и браузер расходятся на границе суток. Слов «сегодня» и «вчера» нет: страница кэшируется, и они устаревают. Год показывается, только если он не текущий (в Алматы). Ключ состояния проверяется через `Object.hasOwn` по словарю `new`/`used`; неизвестный ключ, `null` и пустая строка означают, что тега нет. Бэкенд отдаёт `created_at` с `Z` (проверено на стенде 17 ноября 2026).
 
 ## Известные ограничения и долги
 - Шапка: поиск заглушка; «Подать объявление» на телефоне скрыто; меню аватара: «Мои организации», «Мои объявления», «Выйти» (избранного нет; пункт «Аккаунт» в меню не добавлен, решение за владельцем).

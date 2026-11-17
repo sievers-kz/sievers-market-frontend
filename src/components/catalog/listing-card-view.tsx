@@ -1,9 +1,10 @@
-import { ImageOff, MapPin } from "lucide-react";
+import { ImageOff, MapPin, Store } from "lucide-react";
 import Image from "next/image";
 
 import { cn } from "@/lib/utils";
 
 import { formatPrice } from "./format-price";
+import { formatListingDate, getConditionLabel } from "./listing-card-format";
 import type { CatalogView } from "./search-params";
 
 export interface ListingCardViewProps {
@@ -18,6 +19,12 @@ export interface ListingCardViewProps {
   view?: CatalogView;
   /** Подпись под иконкой, пока фото нет (превью). В каталоге не передаётся: только иконка. */
   imagePlaceholder?: string;
+  /** Организация-продавец. `null` или пустая строка: строка не рисуется. */
+  organizationName?: string | null;
+  /** Ключ состояния (`new`, `used`). Любое другое значение: тега нет. */
+  condition?: string | null;
+  /** Дата создания (ISO). Нет или некорректная: рядом с городом ничего. */
+  createdAt?: string | null;
 }
 
 function Placeholder({ children }: { children: string }) {
@@ -37,8 +44,13 @@ export function ListingCardView({
   localImage = false,
   view = "grid",
   imagePlaceholder,
+  organizationName,
+  condition,
+  createdAt,
 }: ListingCardViewProps) {
   const isList = view === "list";
+  const conditionLabel = getConditionLabel(condition);
+  const dateLabel = formatListingDate(createdAt);
 
   return (
     <div
@@ -78,6 +90,18 @@ export function ListingCardView({
               {imagePlaceholder && <span className="text-xs">{imagePlaceholder}</span>}
             </div>
           )}
+          {conditionLabel && (
+            <span
+              className={cn(
+                "absolute top-2 left-2 rounded-md px-2 py-1 text-xs font-medium",
+                condition === "new"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-foreground",
+              )}
+            >
+              {conditionLabel}
+            </span>
+          )}
         </div>
       </div>
 
@@ -88,10 +112,26 @@ export function ListingCardView({
         <p className="mt-auto text-lg font-semibold">
           {price === null ? <Placeholder>Цена</Placeholder> : formatPrice(price, currency)}
         </p>
-        <p className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground">
-          <MapPin className="size-4 shrink-0" aria-hidden />
-          <span className="truncate">{city || "Город"}</span>
-        </p>
+        {organizationName && (
+          <p
+            className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground"
+            title={organizationName}
+          >
+            <Store className="size-4 shrink-0" aria-hidden />
+            <span className="truncate">{organizationName}</span>
+          </p>
+        )}
+        <div className="flex min-w-0 items-center justify-between gap-2 text-sm text-muted-foreground">
+          <p className="flex min-w-0 items-center gap-1">
+            <MapPin className="size-4 shrink-0" aria-hidden />
+            <span className="truncate">{city || "Город"}</span>
+          </p>
+          {dateLabel && createdAt && (
+            <time dateTime={createdAt} className="shrink-0">
+              {dateLabel}
+            </time>
+          )}
+        </div>
       </div>
     </div>
   );

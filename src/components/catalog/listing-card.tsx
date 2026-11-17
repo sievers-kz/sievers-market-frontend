@@ -26,6 +26,9 @@ export function ListingCard({ listing, view }: ListingCardProps) {
         city={listing.city}
         imageSrc={listing.preview_image ? getMediaUrl(listing.preview_image) : null}
         view={view}
+        organizationName={listing.organization_name}
+        condition={listing.condition}
+        createdAt={listing.created_at}
       />
     </Link>
   );

@@ -1232,7 +1232,10 @@ export interface paths {
         };
         /**
          * Список объявлений каталога
-         * @description Возвращает постраничный список карточек объявлений по категории/подкатегории.
+         * @description Возвращает постраничный список карточек объявлений по категории/подкатегории, сначала новые.
+         *     В карточке: дата создания (`created_at`), название организации-продавца (`organization_name`:
+         *     название магазина или, если его нет, юридическое название) и состояние (`condition`: `new` или `used`;
+         *     `null`, если у подкатегории нет такого атрибута).
          */
         get: operations["getListingsCatalog"];
         put?: never;
@@ -1955,6 +1958,15 @@ export interface components {
              * Format: uuid
              */
             preview_image: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Organization Name */
+            organization_name?: string | null;
+            /** Condition */
+            condition?: string | null;
         };
         /** ListingDetailResponse */
         ListingDetailResponse: {

@@ -1,0 +1,76 @@
+"use client";
+
+import { Building2, ChevronDown, FileText, LogOut } from "lucide-react";
+import Link from "next/link";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useLogout } from "@/hooks/use-logout";
+import type { CurrentUser } from "@/lib/api";
+
+import { getAvatarLetter, getDisplayName } from "./user-display";
+
+/** Аватар с меню. Пункты добавляем, только когда есть страницы (docs/pages/header.md). */
+export function UserMenu({
+  user,
+  onLoggedOut,
+}: {
+  user: CurrentUser;
+  onLoggedOut: () => void;
+}) {
+  const { logout, pending } = useLogout(onLoggedOut);
+  const displayName = getDisplayName(user);
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        disabled={pending}
+        aria-label="Меню пользователя"
+        className="flex h-10 items-center gap-1 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50"
+      >
+        <span className="flex size-10 items-center justify-center rounded-full bg-muted font-semibold">
+          {getAvatarLetter(user)}
+        </span>
+        <ChevronDown aria-hidden className="size-4 text-muted-foreground" />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        collisionPadding={16}
+        className="w-64 max-w-[calc(100vw-32px)] p-2"
+      >
+        <DropdownMenuLabel className="flex flex-col gap-1 px-2 py-2 font-normal">
+          <span className="truncate font-medium">{displayName ?? "Пользователь"}</span>
+          <span className="truncate text-xs text-muted-foreground">{user.email}</span>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild className="px-2 py-2">
+          <Link href="/account/organizations">
+            <Building2 aria-hidden />
+            Мои организации
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild className="px-2 py-2">
+          <Link href="/account/listings">
+            <FileText aria-hidden />
+            Мои объявления
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          disabled={pending}
+          onSelect={() => void logout()}
+          className="px-2 py-2"
+        >
+          <LogOut aria-hidden />
+          Выйти
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}

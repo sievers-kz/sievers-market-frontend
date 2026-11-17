@@ -1,0 +1,176 @@
+"use client";
+
+import { useMemo, useRef, useState } from "react";
+
+import { Button } from "@/components/ui/button";
+import { getSubcategoryForm, type OrganizationListItem } from "@/lib/api";
+import type { components } from "@/lib/api/schema";
+
+import type { ReferenceSources } from "./attribute-field-input";
+import { CatalogPicker, EMPTY_SELECTION, type CatalogSelection } from "./catalog-picker";
+import { FormSectionsSkeleton } from "./form-sections-skeleton";
+import { ListingForm, ORGANIZATION_INCOMPLETE_ERROR_TYPE } from "./listing-form";
+import { ListingPreview } from "./listing-preview";
+import {
+  EMPTY_PREVIEW_FIELDS,
+  type ListingPreviewData,
+  type ListingPreviewFields,
+} from "./listing-preview-data";
+import { sortGroups, type AttributeGroup } from "./listing-schema";
+import { OrganizationSelect, resolveOrganizationId } from "./organization-select";
+import { ORGANIZATION_SUMMARY_MESSAGE_ID, OrganizationSummary } from "./organization-summary";
+import { useImageUploads } from "./use-image-uploads";
+import { missingFieldsOf, useOrganizationDetails } from "./use-organization-details";
+
+type Rubric = components["schemas"]["RubricResponse"];
+
+type FormState =
+  | { status: "idle" }
+  | { status: "loading" }
+  | { status: "error" }
+  | { status: "ready"; groups: AttributeGroup[] };
+
+export interface ListingCreateData {
+  tree: Rubric[];
+  cities: readonly { id: string; name: string }[];
+  references: ReferenceSources;
+}
+
+interface ListingCreateFlowProps extends ListingCreateData {
+  /** Все организации пользователя, среди них хотя бы одна `verified`. */
+  organizations: readonly OrganizationListItem[];
+  /** Перечитать организации: бэкенд сказал, что выбранная недоступна. */
+  onOrganizationsStale: () => void;
+}
+
+export function ListingCreateFlow({
+  organizations,
+  onOrganizationsStale,
+  tree,
+  cities,
+  references,
+}: ListingCreateFlowProps) {
+  // Выбор организации живёт выше формы: не сбрасывается при смене подкатегории.
+  const [chosenOrganizationId, setChosenOrganizationId] = useState("");
+  const organizationId = resolveOrganizationId(organizations, chosenOrganizationId);
+  /** Ошибка поля `organization_id` из формы: само поле стоит над выбором каталога. */
+  const [organizationError, setOrganizationError] = useState<
+    { message: string; type: string } | undefined
+  >();
+  const organizationDetails = useOrganizationDetails(organizationId, onOrganizationsStale);
+  const organizationIncomplete = missingFieldsOf(organizationDetails.state).length > 0;
+  // «Не хватает данных» показывает блок данных, остальные ошибки (не выбрана) селект.
+  const summaryError =
+    organizationError?.type === ORGANIZATION_INCOMPLETE_ERROR_TYPE
+      ? organizationError.message
+      : undefined;
+  const selectError = summaryError ? undefined : organizationError?.message;
+  const [selection, setSelection] = useState<CatalogSelection>(EMPTY_SELECTION);
+  const [formState, setFormState] = useState<FormState>({ status: "idle" });
+  const requestRef = useRef<AbortController | null>(null);
+  // Выше формы: смена подкатегории пересоздаёт форму, но не трогает загруженные фото.
+  const uploads = useImageUploads();
+  // Поля превью сообщает форма; при её пересоздании превью возвращается к заглушкам.
+  const [previewFields, setPreviewFields] = useState<ListingPreviewFields>(EMPTY_PREVIEW_FIELDS);
+  const coverUrl = uploads.items.find((item) => item.status === "done")?.previewUrl ?? null;
+  const preview = useMemo<ListingPreviewData>(
+    () => ({ ...previewFields, imageUrl: coverUrl }),
+    [previewFields, coverUrl],
+  );
+  const previewCity = cities.find((city) => city.id === preview.cityId)?.name ?? null;
+
+  function loadForm(subcategoryId: string) {
+    requestRef.current?.abort();
+    setPreviewFields(EMPTY_PREVIEW_FIELDS);
+    if (!subcategoryId) {
+      setFormState({ status: "idle" });
+      return;
+    }
+    const controller = new AbortController();
+    requestRef.current = controller;
+    setFormState({ status: "loading" });
+    getSubcategoryForm(subcategoryId, controller.signal).then(
+      (form) => {
+        if (!controller.signal.aborted) {
+          setFormState({ status: "ready", groups: sortGroups(form.groups) });
+        }
+      },
+      () => {
+        if (!controller.signal.aborted) setFormState({ status: "error" });
+      },
+    );
+  }
+
+  function handleSelectionChange(next: CatalogSelection) {
+    setSelection(next);
+    if (next.subcategoryId !== selection.subcategoryId) loadForm(next.subcategoryId);
+  }
+
+  return (
+    <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+      <div className="flex min-w-0 flex-col gap-6">
+        <OrganizationSelect
+          organizations={organizations}
+          value={organizationId}
+          onChange={setChosenOrganizationId}
+          error={selectError}
+          hasError={Boolean(organizationError)}
+          describedById={summaryError ? ORGANIZATION_SUMMARY_MESSAGE_ID : undefined}
+        >
+          {organizationDetails.state.status !== "idle" && (
+            <OrganizationSummary
+              organizationId={organizationId}
+              state={organizationDetails.state}
+              onRetry={organizationDetails.reload}
+              error={summaryError}
+            />
+          )}
+        </OrganizationSelect>
+        <CatalogPicker tree={tree} value={selection} onChange={handleSelectionChange} />
+
+        {formState.status === "idle" && (
+          <p className="rounded-2xl bg-card p-6 text-center text-muted-foreground">
+            Выберите подкатегорию, чтобы заполнить объявление
+          </p>
+        )}
+        {formState.status === "loading" && <FormSectionsSkeleton />}
+        {formState.status === "error" && (
+          <div
+            role="alert"
+            className="flex flex-col items-center gap-4 rounded-2xl bg-card p-6 text-center"
+          >
+            <p>Не удалось загрузить поля подкатегории.</p>
+            <Button type="button" onClick={() => loadForm(selection.subcategoryId)}>
+              Повторить
+            </Button>
+          </div>
+        )}
+        {formState.status === "ready" && (
+          // key: смена подкатегории начинает форму заново (кроме фото).
+          <ListingForm
+            key={selection.subcategoryId}
+            organizationId={organizationId}
+            onOrganizationError={setOrganizationError}
+            onOrganizationsStale={onOrganizationsStale}
+            organizationIncomplete={organizationIncomplete}
+            onOrganizationProfileIncomplete={organizationDetails.reload}
+            categoryId={selection.categoryId}
+            subcategoryId={selection.subcategoryId}
+            groups={formState.groups}
+            cities={cities}
+            references={references}
+            uploads={uploads}
+            onPreviewChange={setPreviewFields}
+          />
+        )}
+      </div>
+
+      {/* Телефон: карточку не показываем (иначе её пришлось бы монтировать дважды). */}
+      <ListingPreview
+        data={preview}
+        cityName={previewCity}
+        className="hidden lg:sticky lg:top-8 lg:flex"
+      />
+    </div>
+  );
+}

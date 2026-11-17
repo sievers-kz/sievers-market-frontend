@@ -10,7 +10,10 @@ import {
   getCategoryTree,
 } from "@/lib/api";
 
-export const metadata: Metadata = { title: "Новое объявление" };
+export const metadata: Metadata = {
+  title: "Новое объявление",
+  robots: { index: false },
+};
 
 /** Справочники читаются на сервере (с кэшем); вход и организации проверяет клиент. */
 export default async function NewListingPage() {

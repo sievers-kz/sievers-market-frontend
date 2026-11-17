@@ -15,7 +15,11 @@ export async function generateMetadata({
 }: PageProps<"/catalog/[categoryId]">): Promise<Metadata> {
   const { categoryId } = await params;
   const found = findCategory(await getCategoryTree(), categoryId);
-  return { title: found?.category.name ?? "Каталог" };
+  return {
+    title: found?.category.name ?? "Каталог",
+    // Страницы фильтров и пагинации (`?page=`, `?sort=`) считаем копиями основной.
+    alternates: { canonical: `/catalog/${categoryId}` },
+  };
 }
 
 export default async function CatalogPage({

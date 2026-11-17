@@ -1,4 +1,5 @@
 import { apiFetch } from "./client";
+import type { RequestOptions } from "./client";
 import type { components, operations } from "./schema";
 
 type GetListingsCatalogQuery =
@@ -8,9 +9,11 @@ type GetListingsCatalogResponse =
 
 export function getListingsCatalog(
   query: GetListingsCatalogQuery,
+  options?: Pick<RequestOptions, "next" | "forwardCookies">,
 ): Promise<GetListingsCatalogResponse> {
   return apiFetch<GetListingsCatalogResponse>("/api/v1/listing/catalog", {
     query,
+    ...options,
   });
 }
 

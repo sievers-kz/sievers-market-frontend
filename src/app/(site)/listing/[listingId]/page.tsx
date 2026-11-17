@@ -9,7 +9,7 @@ import { ListingDescription } from "@/components/listing/listing-description";
 import { ListingGallery } from "@/components/listing/listing-gallery";
 import { ListingSummaryCard } from "@/components/listing/listing-summary-card";
 import { ListingTitleCard } from "@/components/listing/listing-title-card";
-import { getListingDetails, isApiError } from "@/lib/api";
+import { getListingDetails, getMediaUrl, isApiError } from "@/lib/api";
 
 const DESCRIPTION_META_LENGTH = 160;
 
@@ -45,6 +45,16 @@ export async function generateMetadata({
     // absolute: иначе шаблон корневого layout допишет « | Sievers Market» второй раз.
     title: { absolute: `${listing.title} · Sievers Market` },
     description: description || undefined,
+    alternates: { canonical: `/listing/${listingId}` },
+    openGraph: {
+      type: "website",
+      title: listing.title,
+      description: description || undefined,
+      url: `/listing/${listingId}`,
+      images: listing.gallery[0]
+        ? [{ url: getMediaUrl(listing.gallery[0]) }]
+        : undefined,
+    },
   };
 }
 

@@ -24,6 +24,9 @@ export function ListingCard({ listing, view }: ListingCardProps) {
         price={listing.price}
         currency={listing.currency}
         city={listing.city}
+        organizationName={listing.organization_name}
+        condition={listing.condition}
+        createdAt={listing.created_at}
         imageSrc={listing.preview_image ? getMediaUrl(listing.preview_image) : null}
         view={view}
       />

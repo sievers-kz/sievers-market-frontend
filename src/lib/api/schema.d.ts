@@ -1955,6 +1955,15 @@ export interface components {
              * Format: uuid
              */
             preview_image: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Organization Name */
+            organization_name?: string | null;
+            /** Condition */
+            condition?: string | null;
         };
         /** ListingDetailResponse */
         ListingDetailResponse: {

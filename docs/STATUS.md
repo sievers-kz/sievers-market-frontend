@@ -2,7 +2,7 @@
 
 Файл для агента: читай его в начале каждой задачи, потому что контекст чата очищается. В конце каждого PR обнови его (раздел «Сделано» и, если есть, «Решения», «Ограничения»). Держи коротким: только то, что не видно из кода и спецификаций экранов. Спецификации экранов лежат в `docs/pages/`.
 
-Обновлено: 17 ноября 2026 (SEO, `feature/seo`).
+Обновлено: 17 ноября 2026 (карточка каталога, `feature/catalog-card-data`).
 
 ## Переход на организации (11 ноября 2026)
 Бэкенд убрал роли `customer` / `vendor`, онбординг и `getMe`; один аккаунт, у него организации, объявление подаётся от имени организации. Работа идёт по `docs/pages/organizations-migration.md` тремя PR: 1) основа — **сделан** (`feature/customer-model`); 2) экран «Мои организации» (`docs/pages/organizations.md`) — **сделан** (`feature/organizations`); 3) выбор организации в форме объявления — **сделан** (`feature/listing-organization`). Переход завершён.
@@ -29,6 +29,7 @@
 - Меню аватара (`feature/header-menu`): пункт «Мои объявления» после «Мои организации», «Выйти» за разделителем; сверху имя («Пользователь», если ФИО не задано) и всегда почта мельче и серым. `getDisplayName` не менялся (его же читает `AccountUserBlock`), запасной текст подставляется в `UserMenu`.
 - Страница «Аккаунт» (`feature/account`): `/account`, `docs/pages/account.md`. `AccountView` (ФИО, email, пароль), строки `AccountFieldRow` (значение в одну строку с обрезкой; `OrganizationFieldRow` не тронут, разметка строки продублирована), диалоги `EditFullnameDialog`, `ChangeEmailDialog`, `ChangePasswordDialog` и общий шаг кода `AccountCodeStep`. API: `src/lib/api/account.ts` (`changeCustomerFullname`, `requestEmailChange`, `confirmEmailChange`, `requestPasswordChange`, `confirmPasswordChange`), шесть кодов в `ERROR_CODES`. Пункт сайдбара «Профиль» стал «Аккаунт» (`/account`, первым, `exact`). Над формой входа сообщение по `?reason=` (`login-reason.ts`). У `FormField` необязательный `hint`.
 - SEO (`feature/seo`): `src/lib/site.ts` (`SITE_URL`, `isIndexable()`), `robots.ts`, `sitemap.ts`, `metadataBase` и Open Graph в корневом `layout.tsx`, canonical у каталога и объявления, OG-картинка объявления, `noindex` для входа/регистрации и «Новое объявление».
+- Карточка каталога (`feature/catalog-card-data`): `ListingCardView` показывает тег состояния на фото (`condition`: `new` «Новый», `used` «Б/У», неизвестный ключ без тега), строку с организацией (`organization_name`) и дату (`created_at`, формат `17 нояб.`, без «сегодня/вчера» из-за кэша страницы). Хелперы в `listing-card-format.ts`. Бэкенд: PR #242, список новыми сверху. Превью в форме объявления новые пропсы не передаёт.
 
 ## Решения, которые не видны из кода
 - **Сессия и прокси.** Бэкенд ставит cookie без `Domain`. Браузер ходит на свой origin `/api/v1/...`, rewrite в `next.config.ts` ведёт на `BACKEND_URL` (серверная переменная, читается при сборке; нужна в `.env.local` и в Vercel). Путь ровно `/api/v1`: refresh-cookie стоит с `Path=/api/v1/iam`. Нужен `skipTrailingSlashRedirect` (у части путей API слэш на конце). Сервер Next ходит на `BACKEND_URL` напрямую и пробрасывает `Cookie`.

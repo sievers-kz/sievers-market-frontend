@@ -1,9 +1,10 @@
-import { ImageOff, MapPin } from "lucide-react";
+import { ImageOff, MapPin, Store } from "lucide-react";
 import Image from "next/image";
 
 import { cn } from "@/lib/utils";
 
 import { formatPrice } from "./format-price";
+import { formatListingDate, getConditionLabel } from "./listing-card-format";
 import type { CatalogView } from "./search-params";
 
 export interface ListingCardViewProps {
@@ -18,7 +19,17 @@ export interface ListingCardViewProps {
   view?: CatalogView;
   /** Подпись под иконкой, пока фото нет (превью). В каталоге не передаётся: только иконка. */
   imagePlaceholder?: string;
+  /** Организация-продавец. `null` или пустая строка: строка не рисуется. */
+  organizationName?: string | null;
+  /** Ключ состояния (`new`, `used`). Любое другое значение: тега нет. */
+  condition?: string | null;
+  /** Дата создания (ISO). Нет или некорректная: рядом с городом ничего. */
+  createdAt?: string | null;
+  /** Название подкатегории: маркер в строке тегов. `null` или пустая строка: маркера нет. */
+  subcategory?: string | null;
 }
+
+const TAG_CLASS = "inline-flex rounded-md px-2 py-1 text-xs font-medium";
 
 function Placeholder({ children }: { children: string }) {
   return <span className="font-normal text-muted-foreground">{children}</span>;
@@ -37,8 +48,14 @@ export function ListingCardView({
   localImage = false,
   view = "grid",
   imagePlaceholder,
+  organizationName,
+  condition,
+  createdAt,
+  subcategory,
 }: ListingCardViewProps) {
   const isList = view === "list";
+  const conditionLabel = getConditionLabel(condition);
+  const dateLabel = formatListingDate(createdAt);
 
   return (
     <div
@@ -81,17 +98,68 @@ export function ListingCardView({
         </div>
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col gap-2 p-4">
+      {/* Сверху 8 даёт p-2 у фото, между блоками 8. Футер прижат к низу, чтобы
+          линии в ряду карточек совпадали. */}
+      <div
+        className={cn(
+          "flex min-w-0 flex-1 flex-col gap-2 px-4 pt-0 pb-4",
+          isList && "sm:pt-2",
+        )}
+      >
+        {(conditionLabel || subcategory) && (
+          <div className="flex min-w-0 gap-2">
+            {conditionLabel && (
+              <span
+                className={cn(
+                  TAG_CLASS,
+                  "shrink-0",
+                  condition === "new"
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted text-muted-foreground",
+                )}
+              >
+                {conditionLabel}
+              </span>
+            )}
+            {subcategory && (
+              <span
+                className={cn(TAG_CLASS, "min-w-0 bg-muted text-muted-foreground")}
+                title={subcategory}
+              >
+                <span className="truncate">{subcategory}</span>
+              </span>
+            )}
+          </div>
+        )}
         <h3 className="truncate font-medium group-hover:text-primary" title={title || undefined}>
           {title ? title : <Placeholder>Название объявления</Placeholder>}
         </h3>
-        <p className="mt-auto text-lg font-semibold">
+        {organizationName && (
+          <p
+            className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground"
+            title={organizationName}
+          >
+            <Store className="size-4 shrink-0" aria-hidden />
+            <span className="truncate">{organizationName}</span>
+          </p>
+        )}
+        <p className="text-lg font-semibold">
           {price === null ? <Placeholder>Цена</Placeholder> : formatPrice(price, currency)}
         </p>
-        <p className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground">
-          <MapPin className="size-4 shrink-0" aria-hidden />
-          <span className="truncate">{city || "Город"}</span>
-        </p>
+        <div className="mt-auto border-t border-border pt-2">
+          <p className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
+            <MapPin className="size-4 shrink-0" aria-hidden />
+            <span className="truncate">
+              {city || "Город"}
+              {dateLabel && createdAt && (
+                <>
+                  {" · "}
+                  <time dateTime={createdAt}>{dateLabel}</time>
+                </>
+              )}
+            </span>
+          </p>
+        </div>
       </div>
     </div>
   );

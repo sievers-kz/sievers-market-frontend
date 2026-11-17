@@ -1,4 +1,4 @@
-import { ImageOff, MapPin, Store } from "lucide-react";
+import { ImageOff, Store } from "lucide-react";
 import Image from "next/image";
 
 import { cn } from "@/lib/utils";
@@ -98,62 +98,61 @@ export function ListingCardView({
         </div>
       </div>
 
-      {/* Вместе с p-2 у фото сверху 16. Верхняя группа: теги, название, цена; нижняя
-          (организация, город и дата) прижата к низу карточки, между ними минимум 16. */}
-      <div className="flex min-w-0 flex-1 flex-col gap-4 px-4 pt-2 pb-4">
-        <div className="flex min-w-0 flex-col gap-2">
-          {(conditionLabel || subcategory) && (
-            <div className="flex min-w-0 items-center gap-2">
-              {conditionLabel && (
-                <span
-                  className={cn(
-                    TAG_CLASS,
-                    "shrink-0",
-                    condition === "new"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-foreground",
-                  )}
-                >
-                  {conditionLabel}
-                </span>
-              )}
-              {subcategory && (
-                <span
-                  className={cn(TAG_CLASS, "min-w-0 bg-muted text-muted-foreground")}
-                  title={subcategory}
-                >
-                  <span className="truncate">{subcategory}</span>
-                </span>
-              )}
-            </div>
-          )}
-          <h3 className="truncate font-medium group-hover:text-primary" title={title || undefined}>
-            {title ? title : <Placeholder>Название объявления</Placeholder>}
-          </h3>
-          <p className="text-lg font-semibold">
-            {price === null ? <Placeholder>Цена</Placeholder> : formatPrice(price, currency)}
-          </p>
-        </div>
-
-        <div className="mt-auto flex min-w-0 flex-col gap-2 text-sm text-muted-foreground">
-          {organizationName && (
-            <p className="flex min-w-0 items-center gap-1" title={organizationName}>
-              <Store className="size-4 shrink-0" aria-hidden />
-              <span className="truncate">{organizationName}</span>
-            </p>
-          )}
-          <div className="flex min-w-0 items-center justify-between gap-2">
-            <p className="flex min-w-0 items-center gap-1">
-              <MapPin className="size-4 shrink-0" aria-hidden />
-              <span className="truncate">{city || "Город"}</span>
-            </p>
-            {dateLabel && createdAt && (
-              <time dateTime={createdAt} className="shrink-0">
-                {dateLabel}
-              </time>
+      {/* Вместе с p-2 у фото сверху 16. Футер с организацией прижат к низу карточки. */}
+      <div className="flex min-w-0 flex-1 flex-col gap-2 px-4 pt-2 pb-4">
+        {(conditionLabel || subcategory) && (
+          <div className="flex min-w-0 gap-2">
+            {conditionLabel && (
+              <span
+                className={cn(
+                  TAG_CLASS,
+                  "shrink-0",
+                  condition === "new"
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted text-muted-foreground",
+                )}
+              >
+                {conditionLabel}
+              </span>
+            )}
+            {subcategory && (
+              <span
+                className={cn(TAG_CLASS, "min-w-0 bg-muted text-muted-foreground")}
+                title={subcategory}
+              >
+                <span className="truncate">{subcategory}</span>
+              </span>
             )}
           </div>
-        </div>
+        )}
+        <h3 className="truncate font-medium group-hover:text-primary" title={title || undefined}>
+          {title ? title : <Placeholder>Название объявления</Placeholder>}
+        </h3>
+        <p className="text-lg font-semibold">
+          {price === null ? <Placeholder>Цена</Placeholder> : formatPrice(price, currency)}
+        </p>
+        <p className="truncate text-sm text-muted-foreground">
+          {city || "Город"}
+          {dateLabel && createdAt && (
+            <>
+              {" · "}
+              <time dateTime={createdAt}>{dateLabel}</time>
+            </>
+          )}
+        </p>
+        {organizationName && (
+          <div className="mt-auto pt-2">
+            <div className="border-t border-border pt-2">
+              <p
+                className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground"
+                title={organizationName}
+              >
+                <Store className="size-4 shrink-0" aria-hidden />
+                <span className="truncate">{organizationName}</span>
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -22,15 +22,15 @@ export function ListingCardSkeleton({ view = "grid" }: { view?: CatalogView }) {
           )}
         />
       </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-4 px-4 pt-2 pb-4">
-        <div className="flex min-w-0 flex-col gap-2">
-          <Skeleton className="h-6 w-24" />
-          <Skeleton className="h-6 w-4/5" />
-          <Skeleton className="h-7 w-2/5" />
-        </div>
-        <div className="mt-auto flex min-w-0 flex-col gap-2">
-          <Skeleton className="h-5 w-1/2" />
-          <Skeleton className="h-5 w-1/3" />
+      <div className="flex min-w-0 flex-1 flex-col gap-2 px-4 pt-2 pb-4">
+        <Skeleton className="h-6 w-24" />
+        <Skeleton className="h-6 w-4/5" />
+        <Skeleton className="h-7 w-2/5" />
+        <Skeleton className="h-5 w-1/2" />
+        <div className="mt-auto pt-2">
+          <div className="border-t border-border pt-2">
+            <Skeleton className="h-5 w-1/2" />
+          </div>
         </div>
       </div>
     </div>

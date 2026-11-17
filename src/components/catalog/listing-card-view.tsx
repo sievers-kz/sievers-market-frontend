@@ -98,9 +98,9 @@ export function ListingCardView({
         </div>
       </div>
 
-      {/* Вместе с p-2 у фото сверху 16, между блоками 16. Футер прижат к низу, чтобы
+      {/* Сверху 8 даёт p-2 у фото, между блоками 8. Футер прижат к низу, чтобы
           линии в ряду карточек совпадали. */}
-      <div className="flex min-w-0 flex-1 flex-col gap-4 px-4 pt-2 pb-4">
+      <div className="flex min-w-0 flex-1 flex-col gap-2 px-4 pt-0 pb-4">
         {(conditionLabel || subcategory) && (
           <div className="flex min-w-0 gap-2">
             {conditionLabel && (
@@ -141,7 +141,7 @@ export function ListingCardView({
         <p className="text-lg font-semibold">
           {price === null ? <Placeholder>Цена</Placeholder> : formatPrice(price, currency)}
         </p>
-        <div className="mt-auto border-t border-border pt-4">
+        <div className="mt-auto border-t border-border pt-2">
           <p className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
             <MapPin className="size-4 shrink-0" aria-hidden />
             <span className="truncate">

@@ -1,4 +1,4 @@
-import { ImageOff, Store } from "lucide-react";
+import { ImageOff, MapPin, Store } from "lucide-react";
 import Image from "next/image";
 
 import { cn } from "@/lib/utils";
@@ -98,8 +98,9 @@ export function ListingCardView({
         </div>
       </div>
 
-      {/* Вместе с p-2 у фото сверху 16. Футер с организацией прижат к низу карточки. */}
-      <div className="flex min-w-0 flex-1 flex-col gap-2 px-4 pt-2 pb-4">
+      {/* Вместе с p-2 у фото сверху 16, между блоками 16. Футер прижат к низу, чтобы
+          линии в ряду карточек совпадали. */}
+      <div className="flex min-w-0 flex-1 flex-col gap-4 px-4 pt-2 pb-4">
         {(conditionLabel || subcategory) && (
           <div className="flex min-w-0 gap-2">
             {conditionLabel && (
@@ -128,31 +129,32 @@ export function ListingCardView({
         <h3 className="truncate font-medium group-hover:text-primary" title={title || undefined}>
           {title ? title : <Placeholder>Название объявления</Placeholder>}
         </h3>
+        {organizationName && (
+          <p
+            className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground"
+            title={organizationName}
+          >
+            <Store className="size-4 shrink-0" aria-hidden />
+            <span className="truncate">{organizationName}</span>
+          </p>
+        )}
         <p className="text-lg font-semibold">
           {price === null ? <Placeholder>Цена</Placeholder> : formatPrice(price, currency)}
         </p>
-        <p className="truncate text-sm text-muted-foreground">
-          {city || "Город"}
-          {dateLabel && createdAt && (
-            <>
-              {" · "}
-              <time dateTime={createdAt}>{dateLabel}</time>
-            </>
-          )}
-        </p>
-        {organizationName && (
-          <div className="mt-auto pt-2">
-            <div className="border-t border-border pt-2">
-              <p
-                className="flex min-w-0 items-center gap-1 text-sm text-muted-foreground"
-                title={organizationName}
-              >
-                <Store className="size-4 shrink-0" aria-hidden />
-                <span className="truncate">{organizationName}</span>
-              </p>
-            </div>
-          </div>
-        )}
+        <div className="mt-auto border-t border-border pt-4">
+          <p className="flex min-w-0 items-center gap-1 text-xs text-muted-foreground">
+            <MapPin className="size-4 shrink-0" aria-hidden />
+            <span className="truncate">
+              {city || "Город"}
+              {dateLabel && createdAt && (
+                <>
+                  {" · "}
+                  <time dateTime={createdAt}>{dateLabel}</time>
+                </>
+              )}
+            </span>
+          </p>
+        </div>
       </div>
     </div>
   );

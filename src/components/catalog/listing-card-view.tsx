@@ -100,7 +100,12 @@ export function ListingCardView({
 
       {/* Сверху 8 даёт p-2 у фото, между блоками 8. Футер прижат к низу, чтобы
           линии в ряду карточек совпадали. */}
-      <div className="flex min-w-0 flex-1 flex-col gap-2 px-4 pt-0 pb-4">
+      <div
+        className={cn(
+          "flex min-w-0 flex-1 flex-col gap-2 px-4 pt-0 pb-4",
+          isList && "sm:pt-2",
+        )}
+      >
         {(conditionLabel || subcategory) && (
           <div className="flex min-w-0 gap-2">
             {conditionLabel && (

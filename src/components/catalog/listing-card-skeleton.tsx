@@ -22,7 +22,12 @@ export function ListingCardSkeleton({ view = "grid" }: { view?: CatalogView }) {
           )}
         />
       </div>
-      <div className="flex min-w-0 flex-1 flex-col gap-2 px-4 pt-0 pb-4">
+      <div
+        className={cn(
+          "flex min-w-0 flex-1 flex-col gap-2 px-4 pt-0 pb-4",
+          isList && "sm:pt-2",
+        )}
+      >
         <Skeleton className="h-6 w-24" />
         <Skeleton className="h-6 w-4/5" />
         <Skeleton className="h-5 w-1/2" />

@@ -17,6 +17,24 @@ export function getListingsCatalog(
   });
 }
 
+export type ListingSearchQuery = components["schemas"]["ListingSearchQuery"];
+export type ListingSearchSort = components["schemas"]["ListingSearchSort"];
+type SearchListingResponse =
+  operations["searchListing"]["responses"][200]["content"]["application/json"];
+
+/**
+ * Поиск с фильтрами (Meilisearch). POST, поэтому без кэша. Публичный, cookie не нужны.
+ * 422: недопустимый ключ атрибута, атрибуты без подкатегории, неверный uuid.
+ */
+export function searchListing(body: ListingSearchQuery): Promise<SearchListingResponse> {
+  return apiFetch<SearchListingResponse>("/api/v1/listing/search", {
+    method: "POST",
+    body,
+    cache: "no-store",
+    forwardCookies: false,
+  });
+}
+
 type GetListingDetailsResponse =
   operations["getListingDetails"]["responses"][200]["content"]["application/json"];
 

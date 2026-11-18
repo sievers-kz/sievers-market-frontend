@@ -28,6 +28,17 @@ export function findCategory(
   return undefined;
 }
 
+export type SubcategoryFilters =
+  operations["getSubcategoryFilters"]["responses"][200]["content"]["application/json"];
+
+/** Фильтруемые атрибуты подкатегории для каталога. Меняются редко: кэш на час. */
+export function getSubcategoryFilters(subcategoryId: string): Promise<SubcategoryFilters> {
+  return apiFetch<SubcategoryFilters>(
+    `/api/v1/catalog/${encodeURIComponent(subcategoryId)}/filters`,
+    { next: { revalidate: TREE_REVALIDATE_SECONDS }, forwardCookies: false },
+  );
+}
+
 type SubcategoryForm =
   operations["getSubcategoryForm"]["responses"][200]["content"]["application/json"];
 

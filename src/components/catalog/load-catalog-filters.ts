@@ -1,5 +1,5 @@
 // Только сервер: вызывается со страницы каталога, справочники кэшируются по `revalidate`.
-import { parseOptions } from "@/components/listing-create/listing-schema";
+import { parseOptions, parseUnitLabel } from "@/components/listing-create/listing-schema";
 import { parseHexColor } from "@/components/listing-create/parse-hex-color";
 import {
   getAllBrands,
@@ -75,7 +75,17 @@ function toFilterField(
     return { kind: "select", key: field.key, label: field.label, anyLabel, options };
   }
 
-  // integer, float, string: диапазоны придут в PR 2 (`docs/pages/catalog-filters.md`).
+  if (field.type === "integer" || field.type === "float") {
+    return {
+      kind: "range",
+      key: field.key,
+      label: field.label,
+      unit: parseUnitLabel(field.unit),
+      decimal: field.type === "float",
+    };
+  }
+
+  // string: фильтра нет.
   return null;
 }
 

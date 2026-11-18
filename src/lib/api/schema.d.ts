@@ -1221,6 +1221,14 @@ export interface paths {
          *     только вместе с `subcategory_id` и только по атрибутам, фильтруемым в этой подкатегории
          *     (см. `getFilterableAttributes`); иначе `422`.
          *
+         *     `attribute_ranges`: диапазоны для числовых атрибутов (`integer`, `float`), например
+         *     `{"year_of_issue": {"min": 2015, "max": 2020}}`; можно одну границу. Те же правила, что у
+         *     `attributes`, плюс атрибут должен быть числовым (иначе `422 listing_invalid_range_filter_error`).
+         *
+         *     Цена: `price_min`, `price_max` и сортировка по цене пока работают только среди объявлений в тенге
+         *     (`KZT`); объявления в других валютах при этом не попадают в выдачу. Без фильтра и сортировки по цене
+         *     видны все.
+         *
          *     Сортировка `sort`: `newest`, `price_asc`, `price_desc`. Без `sort` при заданном `text` порядок по
          *     релевантности, без `text` сначала новые. `page` от 1, `limit` от 1 до 50.
          *
@@ -2042,6 +2050,13 @@ export interface components {
             attributes: {
                 [key: string]: string | number | boolean;
             };
+            /**
+             * Attribute Ranges
+             * @default {}
+             */
+            attribute_ranges: {
+                [key: string]: components["schemas"]["NumericRange"];
+            };
             sort?: components["schemas"]["ListingSearchSort"] | null;
             /**
              * Page
@@ -2132,6 +2147,16 @@ export interface components {
          * @enum {string}
          */
         MyListingsStatus: "active" | "inactive" | "archived";
+        /**
+         * NumericRange
+         * @description Диапазон для числового атрибута; можно задать одну границу.
+         */
+        NumericRange: {
+            /** Min */
+            min?: number | null;
+            /** Max */
+            max?: number | null;
+        };
         /** OptionItem */
         OptionItem: {
             /** Key */

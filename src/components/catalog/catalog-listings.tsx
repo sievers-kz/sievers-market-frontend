@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { getListingsCatalog, isApiError, searchListing } from "@/lib/api";
 
 import { CatalogEmpty } from "./catalog-empty";
-import { toSearchAttributes, type FilterChip } from "./catalog-filter-fields";
+import { toSearchAttributes, toSearchRanges, type FilterChip } from "./catalog-filter-fields";
 import { CatalogFilterChips } from "./catalog-filter-chips";
 import { CatalogListHeader } from "./catalog-list-header";
 import { CatalogPagination } from "./catalog-pagination";
@@ -53,6 +53,7 @@ async function loadListings(categoryId: string, params: CatalogParams) {
       price_min: params.priceMin ?? null,
       price_max: params.priceMax ?? null,
       attributes: toSearchAttributes(params.attributes),
+      attribute_ranges: toSearchRanges(params.ranges),
       sort: params.sort ?? null,
       page: params.page,
       limit: PAGE_SIZE,

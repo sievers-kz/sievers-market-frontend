@@ -10,6 +10,16 @@ export const CATALOG_SORTS = ["price_asc", "price_desc"] as const satisfies read
 /** Префикс параметров атрибутов: `f.condition=used`, `f.brand=<uuid>`. */
 export const ATTRIBUTE_PARAM_PREFIX = "f.";
 
+/** Границы числового атрибута: `f.year_of_issue.min=2015`, `f.engine_power.max=200`. */
+const RANGE_MIN_SUFFIX = ".min";
+const RANGE_MAX_SUFFIX = ".max";
+
+/** Диапазон числового атрибута; есть хотя бы одна граница. */
+export interface NumberRange {
+  min?: number;
+  max?: number;
+}
+
 export interface CatalogFilters {
   priceMin?: number;
   priceMax?: number;
@@ -20,6 +30,11 @@ export interface CatalogFilters {
    * После `sanitizeCatalogParams` только ключи и значения, разрешённые подкатегорией.
    */
   attributes?: Readonly<Record<string, string>>;
+  /**
+   * Диапазоны числовых атрибутов (`integer`, `float`): ключ → границы, `min ≤ max`.
+   * После `sanitizeCatalogParams` только числовые атрибуты подкатегории.
+   */
+  ranges?: Readonly<Record<string, NumberRange>>;
 }
 
 export interface CatalogParams extends CatalogFilters {
@@ -48,13 +63,35 @@ export function parsePrice(value: string | undefined): number | undefined {
   return Number.isSafeInteger(price) ? price : undefined;
 }
 
+/** Не больше 6 знаков после точки: `String(number)` их не переводит в запись с `e`. */
+const RANGE_BOUND_RE = /^\d+(\.\d{1,6})?$/;
+
+/**
+ * Граница числового атрибута: только цифры и, для дробных, точка (`12.5`), без знака.
+ * Целая часть в пределах безопасного целого. Иначе `undefined`. Целое ли значение,
+ * проверяет `sanitizeCatalogParams` по типу атрибута.
+ */
+export function parseRangeBound(value: string | undefined): number | undefined {
+  const raw = value?.trim();
+  if (!raw || !RANGE_BOUND_RE.test(raw)) return undefined;
+  const bound = Number(raw);
+  return Number.isSafeInteger(Math.trunc(bound)) ? bound : undefined;
+}
+
+/** Обе границы есть и `min > max` — меняем местами; нет ни одной — `undefined`. */
+export function orderRange(min: number | undefined, max: number | undefined): NumberRange | undefined {
+  if (min === undefined && max === undefined) return undefined;
+  if (min !== undefined && max !== undefined && min > max) return { min: max, max: min };
+  return { min, max };
+}
+
 function parseSort(value: string | undefined): CatalogSort | undefined {
   return CATALOG_SORTS.find((sort) => sort === value);
 }
 
 /**
  * Разбор адреса каталога: `subcategory`, `page`, `view`, `price_min`, `price_max`, `city`,
- * `sort`, `f.<ключ>`. Некорректные значения молча отбрасываются (или заменяются значениями
+ * `sort`, `f.<ключ>`, `f.<ключ>.min`, `f.<ключ>.max`. Некорректные значения молча отбрасываются (или заменяются значениями
  * по умолчанию). Атрибуты здесь проверяются только по форме: допустимые ключи и значения
  * знает `getSubcategoryFilters`, их отсекает `sanitizeCatalogParams` на странице.
  */
@@ -70,11 +107,27 @@ export function parseCatalogParams(searchParams: RawSearchParams): CatalogParams
   }
 
   const attributes: Record<string, string> = {};
+  const rawRanges: Record<string, { min?: number; max?: number }> = {};
   for (const [name, value] of Object.entries(searchParams)) {
     if (!name.startsWith(ATTRIBUTE_PARAM_PREFIX)) continue;
     const key = name.slice(ATTRIBUTE_PARAM_PREFIX.length);
+    const bound = key.endsWith(RANGE_MIN_SUFFIX) ? "min" : key.endsWith(RANGE_MAX_SUFFIX) ? "max" : null;
+    if (bound) {
+      const rangeKey = key.slice(0, -RANGE_MIN_SUFFIX.length);
+      const boundValue = parseRangeBound(first(value));
+      if (rangeKey && boundValue !== undefined) {
+        rawRanges[rangeKey] = { ...rawRanges[rangeKey], [bound]: boundValue };
+      }
+      continue;
+    }
     const attributeValue = first(value)?.trim();
     if (key && attributeValue) attributes[key] = attributeValue;
+  }
+
+  const ranges: Record<string, NumberRange> = {};
+  for (const [key, { min, max }] of Object.entries(rawRanges)) {
+    const range = orderRange(min, max);
+    if (range) ranges[key] = range;
   }
 
   return {
@@ -87,16 +140,18 @@ export function parseCatalogParams(searchParams: RawSearchParams): CatalogParams
     cityId: isUuid(rawCity) ? rawCity : undefined,
     sort: parseSort(first(searchParams.sort)),
     attributes,
+    ranges,
   };
 }
 
-/** Есть ли фильтр (цена, город, атрибут). Подкатегория и сортировка фильтром не считаются. */
+/** Есть ли фильтр (цена, город, атрибут, диапазон). Подкатегория и сортировка фильтром не считаются. */
 export function hasCatalogFilters(params: CatalogFilters): boolean {
   return (
     params.priceMin !== undefined ||
     params.priceMax !== undefined ||
     params.cityId !== undefined ||
-    Object.keys(params.attributes ?? {}).length > 0
+    Object.keys(params.attributes ?? {}).length > 0 ||
+    Object.keys(params.ranges ?? {}).length > 0
   );
 }
 
@@ -105,14 +160,14 @@ export function needsCatalogSearch(params: CatalogFilters): boolean {
   return hasCatalogFilters(params) || params.sort !== undefined;
 }
 
-/** Без цены, города, атрибутов и сортировки, на первой странице; подкатегория и вид остаются. */
+/** Без цены, города, атрибутов, диапазонов и сортировки, на первой странице; подкатегория и вид остаются. */
 export function resetCatalogFilters(params: CatalogParams): CatalogParams {
   return { subcategoryId: params.subcategoryId, page: 1, view: params.view };
 }
 
-/** Другая подкатегория: атрибуты сбрасываются (у неё свои), цена, город и сортировка остаются. */
+/** Другая подкатегория: атрибуты и диапазоны сбрасываются (у неё свои), цена, город и сортировка остаются. */
 export function withSubcategory(params: CatalogParams, subcategoryId: string | undefined): CatalogParams {
-  return { ...params, subcategoryId, attributes: undefined, page: 1 };
+  return { ...params, subcategoryId, attributes: undefined, ranges: undefined, page: 1 };
 }
 
 /** Ссылка на каталог. Значения по умолчанию (`page=1`, `view=grid`, без сортировки) не пишем. */
@@ -125,6 +180,10 @@ export function buildCatalogHref(categoryId: string, params: CatalogParams): str
   if (params.sort) query.set("sort", params.sort);
   for (const [key, value] of Object.entries(params.attributes ?? {})) {
     query.set(`${ATTRIBUTE_PARAM_PREFIX}${key}`, value);
+  }
+  for (const [key, { min, max }] of Object.entries(params.ranges ?? {})) {
+    if (min !== undefined) query.set(`${ATTRIBUTE_PARAM_PREFIX}${key}${RANGE_MIN_SUFFIX}`, String(min));
+    if (max !== undefined) query.set(`${ATTRIBUTE_PARAM_PREFIX}${key}${RANGE_MAX_SUFFIX}`, String(max));
   }
   if (params.page > 1) query.set("page", String(params.page));
   if (params.view !== "grid") query.set("view", params.view);

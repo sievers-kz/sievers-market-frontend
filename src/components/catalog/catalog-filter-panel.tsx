@@ -1,13 +1,16 @@
 import { CatalogFilterForm, type CatalogFilterFormProps } from "./catalog-filter-form";
 
-/** Панель «Фильтры» в сайдбаре под подкатегориями, только с `lg` (ниже — диалог). */
+/**
+ * Фильтры в сайдбаре под подкатегориями, только с `lg` (ниже — диалог). Каждый фильтр в своей
+ * карточке; блок «Показать» / «Сбросить» липкий снизу, чтобы не уезжал при длинном списке.
+ */
 export function CatalogFilterPanel(props: Omit<CatalogFilterFormProps, "onNavigate">) {
   return (
-    <section aria-labelledby="catalog-filters-title" className="hidden rounded-2xl bg-card p-6 lg:block">
-      <h2 id="catalog-filters-title" className="mb-4 text-lg font-semibold">
+    <section aria-labelledby="catalog-filters-title" className="hidden lg:flex lg:flex-col">
+      <h2 id="catalog-filters-title" className="sr-only">
         Фильтры
       </h2>
-      <CatalogFilterForm {...props} />
+      <CatalogFilterForm {...props} actionsClassName="sticky bottom-0 z-10 mt-4 rounded-b-2xl px-6" />
     </section>
   );
 }

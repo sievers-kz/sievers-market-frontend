@@ -1,5 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
+import type { FilterChip } from "./catalog-filter-fields";
+import { CatalogFilterChips } from "./catalog-filter-chips";
 import { CatalogListHeader } from "./catalog-list-header";
 import { CatalogSortSelect } from "./catalog-sort-select";
 import { ListingGridSkeleton } from "./listing-grid-skeleton";
@@ -9,10 +11,11 @@ import { ViewToggle } from "./view-toggle";
 interface CatalogListingsSkeletonProps {
   categoryId: string;
   params: CatalogParams;
+  chips: readonly FilterChip[];
 }
 
 /** Заглушка `CatalogListings`: та же шапка списка и сетка в выбранном виде. */
-export function CatalogListingsSkeleton({ categoryId, params }: CatalogListingsSkeletonProps) {
+export function CatalogListingsSkeleton({ categoryId, params, chips }: CatalogListingsSkeletonProps) {
   return (
     <>
       <CatalogListHeader
@@ -24,6 +27,7 @@ export function CatalogListingsSkeleton({ categoryId, params }: CatalogListingsS
           </>
         }
       />
+      <CatalogFilterChips categoryId={categoryId} params={params} chips={chips} />
       <ListingGridSkeleton view={params.view} />
     </>
   );

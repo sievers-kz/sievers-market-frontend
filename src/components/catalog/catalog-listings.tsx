@@ -3,7 +3,8 @@ import { notFound } from "next/navigation";
 import { getListingsCatalog, isApiError, searchListing } from "@/lib/api";
 
 import { CatalogEmpty } from "./catalog-empty";
-import { toSearchAttributes } from "./catalog-filter-fields";
+import { toSearchAttributes, type FilterChip } from "./catalog-filter-fields";
+import { CatalogFilterChips } from "./catalog-filter-chips";
 import { CatalogListHeader } from "./catalog-list-header";
 import { CatalogPagination } from "./catalog-pagination";
 import { CatalogSortSelect } from "./catalog-sort-select";
@@ -25,6 +26,8 @@ interface CatalogListingsProps {
   categoryId: string;
   /** Уже очищенные параметры (`sanitizeCatalogParams`): иначе поиск ответит 422. */
   params: CatalogParams;
+  /** Выбранные фильтры: чипы под шапкой списка. */
+  chips: readonly FilterChip[];
 }
 
 /**
@@ -67,7 +70,7 @@ async function loadListings(categoryId: string, params: CatalogParams) {
  * Список объявлений. Грузится внутри `Suspense` с `key` по параметрам (см. страницу каталога):
  * при смене фильтра показывается скелетон, сайдбар остаётся на месте.
  */
-export async function CatalogListings({ categoryId, params }: CatalogListingsProps) {
+export async function CatalogListings({ categoryId, params, chips }: CatalogListingsProps) {
   const listings = await loadListings(categoryId, params);
 
   if (listings && params.page > Math.max(listings.pages, 1)) notFound();
@@ -86,6 +89,8 @@ export async function CatalogListings({ categoryId, params }: CatalogListingsPro
           </>
         }
       />
+
+      <CatalogFilterChips categoryId={categoryId} params={params} chips={chips} />
 
       {listings && listings.items.length > 0 ? (
         <ListingGrid listings={listings.items} view={params.view} />

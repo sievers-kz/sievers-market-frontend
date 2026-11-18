@@ -49,8 +49,8 @@ export function CatalogFiltersDialog({ count, ...formProps }: CatalogFiltersDial
         <CatalogFilterForm
           {...formProps}
           onNavigate={() => setOpen(false)}
-          fieldsClassName="min-h-0 flex-1 overflow-y-auto px-4 py-6"
-          actionsClassName="border-t px-4 py-4"
+          fieldsClassName="min-h-0 flex-1 overflow-y-auto bg-muted p-4"
+          actionsClassName="shrink-0"
         />
       </DialogContent>
     </Dialog>

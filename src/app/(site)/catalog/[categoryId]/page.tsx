@@ -4,7 +4,6 @@ import { Suspense } from "react";
 
 import { CatalogBreadcrumbs } from "@/components/catalog/catalog-breadcrumbs";
 import { getFilterChips, sanitizeCatalogParams } from "@/components/catalog/catalog-filter-fields";
-import { CatalogFilterChips } from "@/components/catalog/catalog-filter-chips";
 import { CatalogFilterPanel } from "@/components/catalog/catalog-filter-panel";
 import { CatalogFiltersDialog } from "@/components/catalog/catalog-filters-dialog";
 import { CatalogListings } from "@/components/catalog/catalog-listings";
@@ -82,16 +81,17 @@ export default async function CatalogPage({
             {/* Без key: форма в диалоге монтируется заново при каждом открытии. И key
                 не должен совпадать с key у Suspense рядом (дубли ключей у соседей). */}
             <CatalogFiltersDialog count={chips.length} {...formProps} />
-            <CatalogFilterChips categoryId={category.id} params={catalogParams} chips={chips} />
 
             {/* loading.tsx на смену searchParams не срабатывает: граница loading
                 привязана к сегменту [categoryId], а не к параметрам. Новый key
                 монтирует новую границу, и она показывает скелетон. */}
             <Suspense
               key={catalogHref}
-              fallback={<CatalogListingsSkeleton categoryId={category.id} params={catalogParams} />}
+              fallback={
+                <CatalogListingsSkeleton categoryId={category.id} params={catalogParams} chips={chips} />
+              }
             >
-              <CatalogListings categoryId={category.id} params={catalogParams} />
+              <CatalogListings categoryId={category.id} params={catalogParams} chips={chips} />
             </Suspense>
           </section>
         </div>

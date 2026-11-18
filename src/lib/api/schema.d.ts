@@ -1214,7 +1214,17 @@ export interface paths {
         put?: never;
         /**
          * Поиск объявлений
-         * @description Полнотекстовый поиск объявлений через Meilisearch с фильтрами и пагинацией.
+         * @description Поиск и фильтрация активных объявлений. Возвращает те же карточки, что `getListingsCatalog`.
+         *
+         *     Фильтры: `text` (название, описание), `category_id`, `subcategory_id`, `city_id`, `price_min`,
+         *     `price_max` и `attributes` (ключ атрибута → значение, равенство). Фильтр по `attributes` работает
+         *     только вместе с `subcategory_id` и только по атрибутам, фильтруемым в этой подкатегории
+         *     (см. `getFilterableAttributes`); иначе `422`.
+         *
+         *     Сортировка `sort`: `newest`, `price_asc`, `price_desc`. Без `sort` при заданном `text` порядок по
+         *     релевантности, без `text` сначала новые. `page` от 1, `limit` от 1 до 50.
+         *
+         *     На странице может прийти меньше `limit` карточек, если объявление стало неактивным после индексации.
          */
         post: operations["searchListing"];
         delete?: never;
@@ -2015,6 +2025,8 @@ export interface components {
         ListingSearchQuery: {
             /** Text */
             text?: string | null;
+            /** Category Id */
+            category_id?: string | null;
             /** Subcategory Id */
             subcategory_id?: string | null;
             /** City Id */
@@ -2030,6 +2042,7 @@ export interface components {
             attributes: {
                 [key: string]: string | number | boolean;
             };
+            sort?: components["schemas"]["ListingSearchSort"] | null;
             /**
              * Page
              * @default 1
@@ -2041,6 +2054,11 @@ export interface components {
              */
             limit: number;
         };
+        /**
+         * ListingSearchSort
+         * @enum {string}
+         */
+        ListingSearchSort: "newest" | "price_asc" | "price_desc";
         /**
          * ListingStatus
          * @enum {string}
@@ -4987,7 +5005,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["PaginatedResponse_ListingCardResponse_"];
                 };
             };
             /** @description Unprocessable Entity */

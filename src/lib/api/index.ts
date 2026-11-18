@@ -22,7 +22,12 @@ export {
 } from "./account";
 export { ERROR_CODES } from "./error-codes";
 export { uploadToPresignedUrl } from "./upload";
-export { findCategory, getCategoryTree, getSubcategoryForm } from "./catalog";
+export {
+  findCategory,
+  getCategoryTree,
+  getSubcategoryFilters,
+  getSubcategoryForm,
+} from "./catalog";
 export {
   activateListing,
   archiveListing,
@@ -33,8 +38,11 @@ export {
   getListingDetails,
   getListingsCatalog,
   getMyListings,
+  searchListing,
 } from "./listing";
 export type {
+  ListingSearchQuery,
+  ListingSearchSort,
   ListingStatusAction,
   MyListingCard,
   MyListingsPage,

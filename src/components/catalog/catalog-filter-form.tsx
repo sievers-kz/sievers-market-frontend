@@ -77,15 +77,16 @@ function priceInput(value: number | undefined): string {
 
 /**
  * Карточка фильтра, как карточка «Категории» (`SubcategoryNav`): белая, `p-4`, заголовок
- * `text-lg font-semibold`. Заголовок — кнопка аккордеона, поля внутри карточки.
+ * `text-lg font-semibold` с `px-2` и отступом 8 до содержимого. Содержимое тоже с `px-2`,
+ * чтобы левый край текста совпадал во всех карточках сайдбара.
  */
 function FilterCard({ value, title, children }: { value: string; title: string; children: ReactNode }) {
   return (
     <AccordionItem value={value} className="rounded-2xl border-b-0 bg-card p-4">
-      <AccordionTrigger className="items-center py-0 text-lg font-semibold hover:no-underline">
+      <AccordionTrigger className="items-center px-2 py-0 text-lg font-semibold hover:no-underline">
         {title}
       </AccordionTrigger>
-      <AccordionContent className="pt-4 pb-0">{children}</AccordionContent>
+      <AccordionContent className="px-2 pt-2 pb-0">{children}</AccordionContent>
     </AccordionItem>
   );
 }
@@ -199,7 +200,7 @@ export function CatalogFilterForm({
             return (
               <FilterCard key={field.key} value={`f.${field.key}`} title={field.label}>
                 {field.kind === "boolean" ? (
-                  <div className="flex min-h-10 items-center gap-2">
+                  <div className="flex min-h-10 items-center gap-2 px-2">
                     <Checkbox
                       id={fieldId}
                       aria-label={field.label}

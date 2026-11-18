@@ -19,8 +19,10 @@ import { FilterRadioList } from "./filter-radio-list";
 import { PriceInput } from "./price-input";
 import {
   buildCatalogHref,
+  hasCatalogFilters,
   parsePrice,
   resetCatalogFilters,
+  type CatalogFilters,
   type CatalogParams,
 } from "./search-params";
 
@@ -35,6 +37,38 @@ export interface CatalogFilterFormProps {
   /** Классы обёртки карточек и блока кнопок: в диалоге карточки прокручиваются, кнопки снизу. */
   fieldsClassName?: string;
   actionsClassName?: string;
+}
+
+function normalizeFormFilters(
+  priceMin: string,
+  priceMax: string,
+  cityId: string,
+  attributes: Readonly<Record<string, string>>,
+): CatalogFilters {
+  let min = parsePrice(priceMin);
+  let max = parsePrice(priceMax);
+  if (min !== undefined && max !== undefined && min > max) [min, max] = [max, min];
+  return { priceMin: min, priceMax: max, cityId: cityId || undefined, attributes };
+}
+
+function sameAttributes(
+  a: CatalogFilters["attributes"] = {},
+  b: CatalogFilters["attributes"] = {},
+): boolean {
+  const keys = Object.keys(a);
+  return (
+    keys.length === Object.keys(b).length &&
+    keys.every((key) => Object.hasOwn(b, key) && a[key] === b[key])
+  );
+}
+
+function sameFilters(a: CatalogFilters, b: CatalogFilters): boolean {
+  return (
+    a.priceMin === b.priceMin &&
+    a.priceMax === b.priceMax &&
+    a.cityId === b.cityId &&
+    sameAttributes(a.attributes, b.attributes)
+  );
 }
 
 function priceInput(value: number | undefined): string {
@@ -94,6 +128,20 @@ export function CatalogFilterForm({
     });
   }
 
+  // Значения формы в том виде, в каком они ушли бы в URL: пустое поле = параметра нет,
+  // цена только цифрами, «от» больше «до» — меняются местами (как при разборе URL).
+  const formFilters = normalizeFormFilters(priceMin, priceMax, cityId, attributes);
+  const appliedFilters: CatalogFilters = {
+    priceMin: params.priceMin,
+    priceMax: params.priceMax,
+    cityId: params.cityId,
+    attributes: params.attributes,
+  };
+  // «Показать» с теми же значениями ничего бы не изменило, а запрос ушёл бы.
+  const changed = !sameFilters(formFilters, appliedFilters);
+  // Сортировка фильтром не считается: её меняет селект в шапке списка.
+  const canReset = hasCatalogFilters(formFilters) || hasCatalogFilters(appliedFilters);
+
   function navigate(next: CatalogParams) {
     router.push(buildCatalogHref(categoryId, next));
     onNavigate?.();
@@ -101,17 +149,20 @@ export function CatalogFilterForm({
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    let min = parsePrice(priceMin);
-    let max = parsePrice(priceMax);
-    if (min !== undefined && max !== undefined && min > max) [min, max] = [max, min];
-    navigate({
-      ...params,
-      priceMin: min,
-      priceMax: max,
-      cityId: cityId || undefined,
-      attributes,
-      page: 1,
-    });
+    if (!changed) return;
+    navigate({ ...params, ...formFilters, page: 1 });
+  }
+
+  function handleReset() {
+    if (hasCatalogFilters(appliedFilters)) {
+      navigate(resetCatalogFilters(params));
+      return;
+    }
+    // В URL фильтров нет, изменена только форма: очищаем её без перехода.
+    setPriceMin("");
+    setPriceMax("");
+    setCityId("");
+    setAttributes({});
   }
 
   return (
@@ -175,22 +226,22 @@ export function CatalogFilterForm({
           })}
         </Accordion>
 
-        {!params.subcategoryId && (
-          <p className="rounded-2xl bg-card p-4 text-sm text-muted-foreground">
-            Выберите подкатегорию, чтобы увидеть фильтры по характеристикам
-          </p>
-        )}
       </div>
 
       <div className={cn("flex flex-col gap-2 rounded-2xl bg-card p-4", actionsClassName)}>
-        <Button type="submit" className="w-full bg-cta text-cta-foreground hover:bg-cta/90">
+        <Button
+          type="submit"
+          disabled={!changed}
+          className="w-full bg-cta text-cta-foreground hover:bg-cta/90"
+        >
           Показать
         </Button>
         <Button
           type="button"
           variant="ghost"
           className="w-full"
-          onClick={() => navigate(resetCatalogFilters(params))}
+          disabled={!canReset}
+          onClick={handleReset}
         >
           Сбросить
         </Button>

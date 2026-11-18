@@ -11,21 +11,18 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 import { BOOLEAN_TRUE, type CityOption, type FilterField } from "./catalog-filter-fields";
 import { FilterRadioList } from "./filter-radio-list";
+import { PriceInput } from "./price-input";
 import {
   buildCatalogHref,
   parsePrice,
   resetCatalogFilters,
   type CatalogParams,
 } from "./search-params";
-
-/** Не больше 15 цифр: такие числа точно безопасные целые. */
-const PRICE_MAX_DIGITS = 15;
 
 export interface CatalogFilterFormProps {
   categoryId: string;
@@ -44,16 +41,17 @@ function priceInput(value: number | undefined): string {
   return value === undefined ? "" : String(value);
 }
 
-function digitsOnly(value: string): string {
-  return value.replace(/\D/g, "").slice(0, PRICE_MAX_DIGITS);
-}
-
-/** Карточка фильтра: белая, заголовок сворачивает и разворачивает содержимое. */
+/**
+ * Карточка фильтра, как карточка «Категории» (`SubcategoryNav`): белая, `p-4`, заголовок
+ * `text-lg font-semibold`. Заголовок — кнопка аккордеона, поля внутри карточки.
+ */
 function FilterCard({ value, title, children }: { value: string; title: string; children: ReactNode }) {
   return (
-    <AccordionItem value={value} className="rounded-2xl border-b-0 bg-card px-4 lg:px-6">
-      <AccordionTrigger className="text-lg font-semibold hover:no-underline">{title}</AccordionTrigger>
-      <AccordionContent>{children}</AccordionContent>
+    <AccordionItem value={value} className="rounded-2xl border-b-0 bg-card p-4">
+      <AccordionTrigger className="items-center py-0 text-lg font-semibold hover:no-underline">
+        {title}
+      </AccordionTrigger>
+      <AccordionContent className="pt-4 pb-0">{children}</AccordionContent>
     </AccordionItem>
   );
 }
@@ -127,22 +125,8 @@ export function CatalogFilterForm({
         >
           <FilterCard value="price" title="Цена, ₸">
             <div className="grid grid-cols-2 gap-2">
-              <Input
-                inputMode="numeric"
-                autoComplete="off"
-                placeholder="от"
-                aria-label="Цена от, ₸"
-                value={priceMin}
-                onChange={(event) => setPriceMin(digitsOnly(event.target.value))}
-              />
-              <Input
-                inputMode="numeric"
-                autoComplete="off"
-                placeholder="до"
-                aria-label="Цена до, ₸"
-                value={priceMax}
-                onChange={(event) => setPriceMax(digitsOnly(event.target.value))}
-              />
+              <PriceInput placeholder="от" aria-label="Цена от, ₸" value={priceMin} onChange={setPriceMin} />
+              <PriceInput placeholder="до" aria-label="Цена до, ₸" value={priceMax} onChange={setPriceMax} />
             </div>
           </FilterCard>
 
@@ -192,13 +176,13 @@ export function CatalogFilterForm({
         </Accordion>
 
         {!params.subcategoryId && (
-          <p className="rounded-2xl bg-card p-4 text-sm text-muted-foreground lg:px-6">
+          <p className="rounded-2xl bg-card p-4 text-sm text-muted-foreground">
             Выберите подкатегорию, чтобы увидеть фильтры по характеристикам
           </p>
         )}
       </div>
 
-      <div className={cn("flex flex-col gap-2 border-t bg-card p-4", actionsClassName)}>
+      <div className={cn("flex flex-col gap-2 rounded-2xl bg-card p-4", actionsClassName)}>
         <Button type="submit" className="w-full bg-cta text-cta-foreground hover:bg-cta/90">
           Показать
         </Button>

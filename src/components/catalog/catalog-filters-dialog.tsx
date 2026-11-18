@@ -50,7 +50,7 @@ export function CatalogFiltersDialog({ count, ...formProps }: CatalogFiltersDial
           {...formProps}
           onNavigate={() => setOpen(false)}
           fieldsClassName="min-h-0 flex-1 overflow-y-auto bg-muted p-4"
-          actionsClassName="shrink-0"
+          actionsClassName="shrink-0 rounded-none border-t"
         />
       </DialogContent>
     </Dialog>

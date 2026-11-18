@@ -22,6 +22,13 @@ const REFERENCE_LOADERS: Record<string, () => Promise<readonly ReferenceItem[]>>
   country: getAllOriginCountries,
 };
 
+/** Первый пункт выбора по справочнику, в роде названия поля: «Любая марка», «Любой цвет». */
+const REFERENCE_ANY_LABELS: Record<string, string> = {
+  brand: "Любая",
+  color: "Любой",
+  country: "Любая",
+};
+
 /** Сбой справочника не роняет каталог: поле просто не показывается. */
 async function loadReference(source: string): Promise<readonly ReferenceItem[] | null> {
   const load = Object.hasOwn(REFERENCE_LOADERS, source) ? REFERENCE_LOADERS[source] : undefined;
@@ -62,7 +69,10 @@ function toFilterField(
       label: item.name,
       swatch: field.source === "color" ? parseHexColor(item.hex) : undefined,
     }));
-    return { kind: "select", key: field.key, label: field.label, anyLabel: "Любой", options };
+    const anyLabel = Object.hasOwn(REFERENCE_ANY_LABELS, field.source)
+      ? REFERENCE_ANY_LABELS[field.source]
+      : "Любой";
+    return { kind: "select", key: field.key, label: field.label, anyLabel, options };
   }
 
   // integer, float, string: диапазоны придут в PR 2 (`docs/pages/catalog-filters.md`).

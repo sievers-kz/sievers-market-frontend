@@ -2,7 +2,7 @@ import { CatalogFilterForm, type CatalogFilterFormProps } from "./catalog-filter
 
 /**
  * Фильтры в сайдбаре под подкатегориями, только с `lg` (ниже — диалог). Каждый фильтр в своей
- * карточке; блок «Показать» / «Сбросить» липкий снизу, чтобы не уезжал при длинном списке.
+ * карточке; карточка «Показать» / «Сбросить» липкая снизу, чтобы не уезжал при длинном списке.
  */
 export function CatalogFilterPanel(props: Omit<CatalogFilterFormProps, "onNavigate">) {
   return (
@@ -10,7 +10,7 @@ export function CatalogFilterPanel(props: Omit<CatalogFilterFormProps, "onNaviga
       <h2 id="catalog-filters-title" className="sr-only">
         Фильтры
       </h2>
-      <CatalogFilterForm {...props} actionsClassName="sticky bottom-0 z-10 mt-4 rounded-b-2xl px-6" />
+      <CatalogFilterForm {...props} actionsClassName="sticky bottom-0 z-10 mt-4" />
     </section>
   );
 }

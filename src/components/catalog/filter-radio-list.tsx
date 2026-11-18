@@ -65,11 +65,12 @@ export function FilterRadioList({ legend, anyLabel, options, value, onChange }: 
           />
         </div>
       )}
-      <div className={searchable ? "-mx-2 max-h-60 overflow-y-auto px-2" : undefined}>
+      <div className={searchable ? "flex max-h-60 flex-col gap-1 overflow-y-auto" : "flex flex-col gap-1"}>
         {items.map((option) => (
           <label
             key={option.value || "__any__"}
-            className="flex min-h-10 items-center gap-2 rounded-md py-2 text-sm has-focus-visible:outline-2 has-focus-visible:outline-ring"
+            // Выбранный пункт выделен как активная подкатегория в `SubcategoryNav`.
+            className="flex min-h-10 items-center gap-2 rounded-lg px-2 py-2 text-sm transition-colors hover:bg-muted has-checked:bg-accent has-checked:font-medium has-checked:text-accent-foreground has-focus-visible:outline-2 has-focus-visible:outline-ring"
           >
             <input
               type="radio"
@@ -89,7 +90,7 @@ export function FilterRadioList({ legend, anyLabel, options, value, onChange }: 
             <span className="min-w-0">{option.label}</span>
           </label>
         ))}
-        {nothingFound && <p className="py-2 text-sm text-muted-foreground">Ничего не найдено</p>}
+        {nothingFound && <p className="px-2 py-2 text-sm text-muted-foreground">Ничего не найдено</p>}
       </div>
     </fieldset>
   );

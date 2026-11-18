@@ -1,6 +1,7 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { CatalogListHeader } from "./catalog-list-header";
+import { CatalogSortSelect } from "./catalog-sort-select";
 import { ListingGridSkeleton } from "./listing-grid-skeleton";
 import type { CatalogParams } from "./search-params";
 import { ViewToggle } from "./view-toggle";
@@ -16,7 +17,12 @@ export function CatalogListingsSkeleton({ categoryId, params }: CatalogListingsS
     <>
       <CatalogListHeader
         title={<Skeleton className="h-5 w-48" />}
-        actions={<ViewToggle categoryId={categoryId} params={params} />}
+        actions={
+          <>
+            <CatalogSortSelect categoryId={categoryId} params={params} />
+            <ViewToggle categoryId={categoryId} params={params} />
+          </>
+        }
       />
       <ListingGridSkeleton view={params.view} />
     </>

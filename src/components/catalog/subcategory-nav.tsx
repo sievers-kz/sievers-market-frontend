@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { components } from "@/lib/api/schema";
 import { cn } from "@/lib/utils";
 
-import { buildCatalogHref, type CatalogParams } from "./search-params";
+import { buildCatalogHref, withSubcategory, type CatalogParams } from "./search-params";
 
 type SubcategoryResponse = components["schemas"]["SubcategoryResponse"];
 
@@ -14,7 +14,8 @@ interface SubcategoryNavProps {
 }
 
 /**
- * Выбор одной подкатегории. Каждый пункт — ссылка: страница сбрасывается на 1, вид сохраняется.
+ * Выбор одной подкатегории. Каждый пункт — ссылка: страница сбрасывается на 1, атрибуты (`f.*`)
+ * тоже (у другой подкатегории свои); вид, цена, город и сортировка сохраняются.
  * На мобильных — горизонтальная строка, с `lg` — вертикальный список в сайдбаре.
  */
 export function SubcategoryNav({
@@ -38,11 +39,7 @@ export function SubcategoryNav({
           return (
             <li key={item.id ?? "all"} className="shrink-0">
               <Link
-                href={buildCatalogHref(categoryId, {
-                  subcategoryId: item.id,
-                  page: 1,
-                  view: params.view,
-                })}
+                href={buildCatalogHref(categoryId, withSubcategory(params, item.id))}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
                   "block rounded-lg px-4 py-2 text-sm whitespace-nowrap transition-colors lg:whitespace-normal",

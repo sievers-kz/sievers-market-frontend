@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 
 import { ListingSellerContacts } from "./listing-seller-contacts";
 import { ListingSellerField } from "./listing-seller-field";
+import { getInitials } from "./listing-seller-format";
 
 interface ListingSellerCardProps {
   listingId: string;
@@ -18,17 +19,6 @@ const TAX_ID_LABELS: Record<string, string> = { company: "БИН", individual: "
 
 function taxIdLabel(kind: string): string {
   return Object.hasOwn(TAX_ID_LABELS, kind) ? TAX_ID_LABELS[kind] : "БИН/ИИН";
-}
-
-/** Первые буквы двух первых слов («Олжа Агро» → «ОА»), без кавычек и знаков. */
-function getInitials(name: string): string {
-  return name
-    .split(/\s+/)
-    .map((word) => word.match(/[\p{L}\p{N}]/u)?.[0] ?? "")
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
 }
 
 function clean(value: string | null): string | null {
@@ -86,9 +76,9 @@ export function ListingSellerCard({ listingId, seller, className }: ListingSelle
         phoneMasked={clean(seller.phone_masked)}
         emailMasked={clean(seller.email_masked)}
       >
-        {legalName && <ListingSellerField label="Полное наименование">{legalName}</ListingSellerField>}
-        {taxId && <ListingSellerField label={taxIdLabel(seller.kind)}>{taxId}</ListingSellerField>}
-        {address && <ListingSellerField label="Юридический адрес">{address}</ListingSellerField>}
+        {legalName && <ListingSellerField label="Полное наименование" secondary>{legalName}</ListingSellerField>}
+        {taxId && <ListingSellerField label={taxIdLabel(seller.kind)} secondary>{taxId}</ListingSellerField>}
+        {address && <ListingSellerField label="Юридический адрес" secondary>{address}</ListingSellerField>}
       </ListingSellerContacts>
     </section>
   );

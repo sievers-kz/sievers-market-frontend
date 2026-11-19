@@ -1,7 +1,8 @@
 import { CalendarDays, MapPin } from "lucide-react";
 
 import { formatListingDate } from "@/components/catalog/listing-card-format";
-import { ListingConditionTag } from "@/components/catalog/listing-condition-tag";
+import { LISTING_TAG_CLASS, ListingConditionTag } from "@/components/catalog/listing-condition-tag";
+import { cn } from "@/lib/utils";
 
 interface ListingTitleCardProps {
   subcategory: string;
@@ -25,9 +26,13 @@ export function ListingTitleCard({
     <section className="flex flex-col gap-2 rounded-2xl bg-card p-6">
       <div className="flex min-w-0 items-center gap-2">
         <ListingConditionTag condition={condition} />
-        <p className="truncate text-sm text-muted-foreground" title={subcategory}>
-          {subcategory}
-        </p>
+        {/* Бейдж подкатегории: нейтральный, как «Б/У» и маркер в карточке каталога. */}
+        <span
+          className={cn(LISTING_TAG_CLASS, "min-w-0 bg-muted text-muted-foreground")}
+          title={subcategory}
+        >
+          <span className="truncate">{subcategory}</span>
+        </span>
       </div>
       <h1 className="text-2xl font-semibold break-words lg:text-3xl">{title}</h1>
       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">

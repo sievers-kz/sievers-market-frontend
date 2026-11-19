@@ -1,6 +1,7 @@
 import type { ListingSpecGroup } from "@/lib/api";
 
-import { formatSpecValue, LISTING_SPECS_ID } from "./listing-specs";
+import { formatSpecValue } from "./listing-spec-format";
+import { ListingSpecsLink } from "./listing-specs-link";
 
 /** Группа `specs`, которая показывается в карточке объявления, а не в «Характеристиках». */
 const KEY_SPECS_GROUP = "general";
@@ -40,12 +41,7 @@ export function ListingKeySpecs({ specs }: ListingKeySpecsProps) {
           ))}
         </dl>
         {hasMore && (
-          <a
-            href={`#${LISTING_SPECS_ID}`}
-            className="self-start text-sm font-medium text-primary hover:underline"
-          >
-            Все характеристики
-          </a>
+          <ListingSpecsLink />
         )}
       </div>
     </>

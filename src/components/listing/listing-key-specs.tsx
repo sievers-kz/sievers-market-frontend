@@ -32,7 +32,7 @@ export function ListingKeySpecs({ specs }: ListingKeySpecsProps) {
       <div className="flex flex-col gap-2">
         <dl className="flex flex-col">
           {group.items.map((item) => (
-            <div key={item.key} className="flex min-h-12 items-center justify-between gap-4 text-sm">
+            <div key={item.key} className="flex justify-between gap-4 py-2 text-sm">
               <dt className="min-w-0 text-muted-foreground">{item.label}</dt>
               <dd className="min-w-0 text-right font-medium break-words">
                 {formatSpecValue(item)}

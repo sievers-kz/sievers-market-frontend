@@ -21,31 +21,42 @@ interface ListingSpecsProps {
 
 /**
  * Предел свёрнутого блока: примерно 6 строк описания (`text-base`, строка 24). Обрезаем
- * по нижней границе последней строки, которая целиком влезает в предел.
+ * по нижней границе последнего ряда сетки, который целиком влезает в предел.
  */
 const COLLAPSED_LIMIT = 6 * 24;
 
 interface SpecsCut {
-  /** Высота свёрнутого блока: низ последней целой строки. */
+  /** Высота свёрнутого блока: низ последнего целого ряда полей. */
   height: number;
   overflows: boolean;
 }
 
+/**
+ * Низ каждого ряда сетки: поля одного ряда стоят на одном `offsetTop`, низ ряда — самое
+ * высокое из них (соседнее значение могло перенестись на две строки).
+ */
+function rowBottoms(content: HTMLElement): number[] {
+  const bottoms = new Map<number, number>();
+  for (const field of content.querySelectorAll<HTMLElement>("[data-spec-field]")) {
+    const top = field.offsetTop;
+    bottoms.set(top, Math.max(bottoms.get(top) ?? 0, top + field.offsetHeight));
+  }
+  return [...bottoms.values()].sort((a, b) => a - b);
+}
+
 function measureSpecsCut(content: HTMLElement): SpecsCut {
-  const rows = content.querySelectorAll<HTMLElement>("[data-spec-row]");
   let height = 0;
-  for (const row of rows) {
-    const bottom = row.offsetTop + row.offsetHeight;
+  for (const bottom of rowBottoms(content)) {
     if (bottom > COLLAPSED_LIMIT && height > 0) break;
     height = bottom;
-    if (bottom > COLLAPSED_LIMIT) break; // Первая строка выше предела: показываем её целиком.
+    if (bottom > COLLAPSED_LIMIT) break; // Первый ряд выше предела: показываем его целиком.
   }
   return { height, overflows: content.scrollHeight > height + 1 };
 }
 
 /**
- * «Характеристики»: группы с заголовками, строки «название — значение единица».
- * Длинный блок свёрнут по целой строке, «Показать все» / «Свернуть». Ссылка
+ * «Характеристики»: группы с заголовками, внутри поля сеткой (две колонки с `md`): подпись
+ * сверху, значение снизу, по рядам в порядке `specs`. Длинный блок свёрнут по целому ряду, «Показать все» / «Свернуть». Ссылка
  * «Все характеристики» раскрывает его событием `LISTING_SPECS_EXPAND_EVENT`.
  */
 export function ListingSpecs({ groups, className }: ListingSpecsProps) {
@@ -101,15 +112,11 @@ export function ListingSpecs({ groups, className }: ListingSpecsProps) {
         {visible.map((group) => (
           <div key={group.key} className="flex flex-col gap-2">
             <h3 className="font-semibold">{group.label}</h3>
-            <dl className="flex flex-col">
+            <dl className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
               {group.items.map((item) => (
-                <div
-                  key={item.key}
-                  data-spec-row
-                  className="grid min-h-12 grid-cols-2 items-center gap-4 border-b border-border last:border-b-0"
-                >
-                  <dt className="min-w-0 break-words text-muted-foreground">{item.label}</dt>
-                  <dd className="min-w-0 font-medium break-words">{formatSpecValue(item)}</dd>
+                <div key={item.key} data-spec-field className="flex min-w-0 flex-col gap-1">
+                  <dt className="text-sm break-words text-muted-foreground">{item.label}</dt>
+                  <dd className="font-medium break-words">{formatSpecValue(item)}</dd>
                 </div>
               ))}
             </dl>

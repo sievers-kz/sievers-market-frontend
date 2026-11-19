@@ -8,6 +8,7 @@ import { getListingContacts, isApiError, type ListingContacts } from "@/lib/api"
 import { cn } from "@/lib/utils";
 
 import { ListingSellerField } from "./listing-seller-field";
+import { formatPhoneForDisplay, phoneForCopy, telHref } from "./listing-seller-format";
 
 interface ListingSellerContactsProps {
   listingId: string;
@@ -24,12 +25,6 @@ type State =
   | { status: "revealed"; contacts: ListingContacts };
 
 const CTA_CLASS = "h-12 w-full bg-cta text-base text-cta-foreground hover:bg-cta/90";
-
-/** Для `tel:` только цифры и ведущий `+`; показываем номер как прислал бэкенд. */
-function telHref(phone: string): string {
-  const digits = phone.replace(/[^\d+]/g, "");
-  return `tel:${digits.startsWith("+") ? "+" : ""}${digits.replace(/\+/g, "")}`;
-}
 
 function CopyButton({ value, label, hidden }: { value: string; label: string; hidden: boolean }) {
   const [copied, setCopied] = useState(false);
@@ -137,9 +132,12 @@ export function ListingSellerContacts({
           {showPhone && phoneMasked && (
             <ListingSellerField
               label="Телефон"
-              action={<CopyButton value={phone ?? ""} label="Телефон" hidden={!phone} />}
+              action={
+                <CopyButton value={phone ? phoneForCopy(phone) : ""} label="Телефон" hidden={!phone} />
+              }
             >
-              <ContactValue masked={phoneMasked} value={phone} />
+              {/* Показ отформатирован, `tel:` и «Копировать» берут исходный номер. */}
+              <ContactValue masked={phoneMasked} value={phone && formatPhoneForDisplay(phone)} />
             </ListingSellerField>
           )}
           {showEmail && emailMasked && (

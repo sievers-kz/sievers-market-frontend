@@ -1,7 +1,8 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
+import { measureClampOverflow, useResizeMeasure } from "@/hooks/use-resize-measure";
 import { cn } from "@/lib/utils";
 
 interface ListingDescriptionProps {
@@ -11,23 +12,13 @@ interface ListingDescriptionProps {
 
 /**
  * Текст длиннее 6 строк сворачивается. Переполнение меряем по факту вёрстки
- * (`scrollHeight > clientHeight`), а не по длине строки. Высоту блока не задаём.
+ * (`useResizeMeasure`, `scrollHeight > clientHeight`), а не по длине строки.
  */
 export function ListingDescription({ text, className }: ListingDescriptionProps) {
   const ref = useRef<HTMLParagraphElement>(null);
   const [expanded, setExpanded] = useState(false);
-  const [overflows, setOverflows] = useState(false);
-
-  useLayoutEffect(() => {
-    const element = ref.current;
-    if (!element || expanded) return;
-    const measure = () =>
-      setOverflows(element.scrollHeight > element.clientHeight + 1);
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [expanded]);
+  // Пока раскрыто, не меряем (обрезки нет): остаётся значение из свёрнутого вида.
+  const overflows = useResizeMeasure(ref, measureClampOverflow, !expanded) ?? false;
 
   return (
     <section

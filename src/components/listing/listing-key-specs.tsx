@@ -1,6 +1,7 @@
 import type { ListingSpecGroup } from "@/lib/api";
 
-import { formatSpecValue, LISTING_SPECS_ID } from "./listing-specs";
+import { formatSpecValue } from "./listing-spec-format";
+import { ListingSpecsLink } from "./listing-specs-link";
 
 /** Группа `specs`, которая показывается в карточке объявления, а не в «Характеристиках». */
 const KEY_SPECS_GROUP = "general";
@@ -31,7 +32,7 @@ export function ListingKeySpecs({ specs }: ListingKeySpecsProps) {
       <div className="flex flex-col gap-2">
         <dl className="flex flex-col">
           {group.items.map((item) => (
-            <div key={item.key} className="flex justify-between gap-4 py-2 text-sm">
+            <div key={item.key} className="flex min-h-12 items-center justify-between gap-4 text-sm">
               <dt className="min-w-0 text-muted-foreground">{item.label}</dt>
               <dd className="min-w-0 text-right font-medium break-words">
                 {formatSpecValue(item)}
@@ -40,12 +41,7 @@ export function ListingKeySpecs({ specs }: ListingKeySpecsProps) {
           ))}
         </dl>
         {hasMore && (
-          <a
-            href={`#${LISTING_SPECS_ID}`}
-            className="self-start text-sm font-medium text-primary hover:underline"
-          >
-            Все характеристики
-          </a>
+          <ListingSpecsLink />
         )}
       </div>
     </>

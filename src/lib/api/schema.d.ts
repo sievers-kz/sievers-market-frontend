@@ -1302,7 +1302,16 @@ export interface paths {
         };
         /**
          * Детали объявления
-         * @description Возвращает полную карточку объявления: владелец, галерея, динамические атрибуты.
+         * @description Возвращает полную карточку активного объявления.
+         *
+         *     - `seller`: организация-продавец с публичными контактами.
+         *     - `specs`: характеристики, готовые к показу, по группам и в порядке формы. Для вариантов
+         *       отдаётся подпись («Б/У»), для справочников название («John Deere»), для булевых «Да»/«Нет»,
+         *       числа как есть, единица измерения в `unit`. Пустые значения не попадают.
+         *     - `condition`: ключ варианта состояния (`new`, `used`) или `null`.
+         *     - `attributes`: сырые значения, как их сохранил продавец (для формы редактирования).
+         *
+         *     Неактивное, удалённое или несуществующее объявление: 404.
          */
         get: operations["getListingDetails"];
         put?: never;
@@ -1998,6 +2007,18 @@ export interface components {
              * Format: uuid
              */
             owner_id: string;
+            /**
+             * Category Id
+             * Format: uuid
+             */
+            category_id: string;
+            /** Category */
+            category: string;
+            /**
+             * Subcategory Id
+             * Format: uuid
+             */
+            subcategory_id: string;
             /** Subcategory */
             subcategory: string;
             /** Title */
@@ -2016,6 +2037,16 @@ export interface components {
             attributes: {
                 [key: string]: unknown;
             };
+            /** Condition */
+            condition: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            seller: components["schemas"]["ListingSeller"];
+            /** Specs */
+            specs: components["schemas"]["ListingSpecGroup"][];
         };
         /** ListingImage */
         ListingImage: {
@@ -2074,6 +2105,51 @@ export interface components {
          * @enum {string}
          */
         ListingSearchSort: "newest" | "price_asc" | "price_desc";
+        /**
+         * ListingSeller
+         * @description Продавец: организация, от имени которой подано объявление. Контакты публичные.
+         */
+        ListingSeller: {
+            /**
+             * Organization Id
+             * Format: uuid
+             */
+            organization_id: string;
+            /** Name */
+            name: string | null;
+            /** Phone */
+            phone: string | null;
+            /** Email */
+            email: string | null;
+            /** Logo Media Id */
+            logo_media_id: string | null;
+        };
+        /** ListingSpecGroup */
+        ListingSpecGroup: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Items */
+            items: components["schemas"]["ListingSpecItem"][];
+        };
+        /**
+         * ListingSpecItem
+         * @description Характеристика, готовая к показу.
+         *
+         *     `value`: подпись варианта, название из справочника, «Да»/«Нет» или число как есть
+         *     (число форматирует фронт, единица измерения отдельно в `unit`).
+         */
+        ListingSpecItem: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Value */
+            value: string | number;
+            /** Unit */
+            unit: string | null;
+        };
         /**
          * ListingStatus
          * @enum {string}
@@ -5142,7 +5218,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ListingDetailResponse"] | null;
+                    "application/json": components["schemas"]["ListingDetailResponse"];
                 };
             };
             /** @description Not Found */

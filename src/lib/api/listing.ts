@@ -77,6 +77,9 @@ export function getCreatedListingId(response: unknown): string | null {
 
 type Schemas = components["schemas"];
 
+export type ListingSeller = Schemas["ListingSeller"];
+export type ListingSpecGroup = Schemas["ListingSpecGroup"];
+export type ListingSpecItem = Schemas["ListingSpecItem"];
 export type MyListingCard = Schemas["MyListingCardResponse"];
 export type MyListingsStatus = Schemas["MyListingsStatus"];
 export type MyListingsSort = Schemas["MyListingsSort"];

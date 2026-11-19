@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 
 import { formatPrice } from "./format-price";
 import { formatListingDate, getConditionLabel } from "./listing-card-format";
+import { LISTING_TAG_CLASS, ListingConditionTag } from "./listing-condition-tag";
 import type { CatalogView } from "./search-params";
 
 export interface ListingCardViewProps {
@@ -51,8 +52,6 @@ export interface ListingCardViewProps {
   actions?: ReactNode;
   className?: string;
 }
-
-const TAG_CLASS = "inline-flex rounded-md px-2 py-1 text-xs font-medium";
 
 function Placeholder({ children }: { children: string }) {
   return <span className="font-normal text-muted-foreground">{children}</span>;
@@ -150,22 +149,10 @@ export function ListingCardView({
       >
         {(conditionLabel || subcategory) && (
           <div className="flex min-w-0 gap-2">
-            {conditionLabel && (
-              <span
-                className={cn(
-                  TAG_CLASS,
-                  "shrink-0",
-                  condition === "new"
-                    ? "bg-primary/10 text-primary"
-                    : "bg-muted text-muted-foreground",
-                )}
-              >
-                {conditionLabel}
-              </span>
-            )}
+            <ListingConditionTag condition={condition} />
             {subcategory && (
               <span
-                className={cn(TAG_CLASS, "min-w-0 bg-muted text-muted-foreground")}
+                className={cn(LISTING_TAG_CLASS, "min-w-0 bg-muted text-muted-foreground")}
                 title={subcategory}
               >
                 <span className="truncate">{subcategory}</span>

@@ -3,10 +3,11 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 
 import { Container } from "@/components/layout/container";
-import { ListingAttributes } from "@/components/listing/listing-attributes";
 import { ListingBreadcrumbs } from "@/components/listing/listing-breadcrumbs";
 import { ListingDescription } from "@/components/listing/listing-description";
 import { ListingGallery } from "@/components/listing/listing-gallery";
+import { ListingSellerCard } from "@/components/listing/listing-seller-card";
+import { ListingSpecs } from "@/components/listing/listing-specs";
 import { ListingSummaryCard } from "@/components/listing/listing-summary-card";
 import { ListingTitleCard } from "@/components/listing/listing-title-card";
 import { getListingDetails, getMediaUrl, isApiError } from "@/lib/api";
@@ -67,16 +68,23 @@ export default async function ListingPage({
   return (
     <main className="flex-1 bg-muted py-8">
       <Container className="flex flex-col gap-6">
-        <ListingBreadcrumbs subcategoryName={listing.subcategory} />
+        <ListingBreadcrumbs
+          categoryId={listing.category_id}
+          categoryName={listing.category}
+          subcategoryId={listing.subcategory_id}
+          subcategoryName={listing.subcategory}
+        />
         <ListingTitleCard
           subcategory={listing.subcategory}
           title={listing.title}
           city={listing.city}
+          condition={listing.condition}
+          createdAt={listing.created_at}
         />
 
-        {/* Телефон: галерея → цена → характеристики → описание (через order).
-            С lg: слева галерея, характеристики, описание; справа липкая колонка с ценой.
-            Карточки продавца нет: данных организации в ответе нет (backend#207). */}
+        {/* Телефон: галерея → цена и продавец → характеристики → описание (через order).
+            С lg: слева галерея, характеристики, описание; справа липкая колонка с ценой
+            и продавцом. Характеристики только из `specs`, сырые `attributes` не показываем. */}
         <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[minmax(0,1fr)_400px] lg:items-start">
           <div className="contents lg:flex lg:min-w-0 lg:flex-col lg:gap-6">
             <ListingGallery
@@ -84,10 +92,7 @@ export default async function ListingPage({
               mediaIds={listing.gallery}
               title={listing.title}
             />
-            <ListingAttributes
-              className="order-3"
-              attributes={listing.attributes}
-            />
+            <ListingSpecs className="order-3" groups={listing.specs} />
             {listing.description !== null && (
               <ListingDescription
                 className="order-4"
@@ -96,11 +101,12 @@ export default async function ListingPage({
             )}
           </div>
 
-          <aside className="order-2 lg:sticky lg:top-8">
+          <aside className="order-2 flex flex-col gap-6 lg:sticky lg:top-8">
             <ListingSummaryCard
               price={listing.price}
               currency={listing.currency}
             />
+            <ListingSellerCard seller={listing.seller} />
           </aside>
         </div>
       </Container>

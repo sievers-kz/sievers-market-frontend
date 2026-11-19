@@ -1304,7 +1304,9 @@ export interface paths {
          * Детали объявления
          * @description Возвращает полную карточку активного объявления.
          *
-         *     - `seller`: организация-продавец с публичными контактами.
+         *     - `seller`: организация-продавец. Юрданные открыто (наименование, `kind` и `tax_id`: ИИН у ИП,
+         *       БИН у компании, адрес, проверка по реестру). Телефон и email только маской (`phone_masked`,
+         *       `email_masked`): полные значения отдаёт `GET /listing/{listing_id}/contacts`.
          *     - `specs`: характеристики, готовые к показу, по группам и в порядке формы. Для вариантов
          *       отдаётся подпись («Б/У»), для справочников название («John Deere»), для булевых «Да»/«Нет»,
          *       числа как есть, единица измерения в `unit`. Пустые значения не попадают.
@@ -1314,6 +1316,31 @@ export interface paths {
          *     Неактивное, удалённое или несуществующее объявление: 404.
          */
         get: operations["getListingDetails"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/listing/{listing_id}/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Контакты продавца
+         * @description Полные телефон и email продавца для кнопки «Показать контакты». Без авторизации.
+         *
+         *     В детальной карточке контакты только маской, чтобы их не было в HTML страницы.
+         *     Поле `null`, если продавец его не указал.
+         *
+         *     Неактивное, удалённое или несуществующее объявление: 404.
+         */
+        get: operations["getListingContacts"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1995,6 +2022,16 @@ export interface components {
             /** Condition */
             condition?: string | null;
         };
+        /**
+         * ListingContactsResponse
+         * @description Полные контакты продавца. Отдельный запрос, чтобы их не было в HTML страницы.
+         */
+        ListingContactsResponse: {
+            /** Phone */
+            phone: string | null;
+            /** Email */
+            email: string | null;
+        };
         /** ListingDetailResponse */
         ListingDetailResponse: {
             /**
@@ -2107,7 +2144,12 @@ export interface components {
         ListingSearchSort: "newest" | "price_asc" | "price_desc";
         /**
          * ListingSeller
-         * @description Продавец: организация, от имени которой подано объявление. Контакты публичные.
+         * @description Продавец: организация, от имени которой подано объявление.
+         *
+         *     Юрданные открытые (это сведения реестра). Телефон и email только маской: полные значения
+         *     отдаёт `GET /listing/{id}/contacts`.
+         *     `kind`: `individual` (ИП, `tax_id` это ИИН) или `company` (`tax_id` это БИН).
+         *     `is_registry_verified`: БИН/ИИН найден в реестре налогоплательщиков.
          */
         ListingSeller: {
             /**
@@ -2117,10 +2159,22 @@ export interface components {
             organization_id: string;
             /** Name */
             name: string | null;
-            /** Phone */
-            phone: string | null;
-            /** Email */
-            email: string | null;
+            /** Legal Name */
+            legal_name: string | null;
+            /** Kind */
+            kind: string;
+            /** Form */
+            form: string | null;
+            /** Tax Id */
+            tax_id: string;
+            /** Legal Address */
+            legal_address: string | null;
+            /** Is Registry Verified */
+            is_registry_verified: boolean;
+            /** Phone Masked */
+            phone_masked: string | null;
+            /** Email Masked */
+            email_masked: string | null;
             /** Logo Media Id */
             logo_media_id: string | null;
         };
@@ -5219,6 +5273,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ListingDetailResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    getListingContacts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listing_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListingContactsResponse"];
                 };
             };
             /** @description Not Found */

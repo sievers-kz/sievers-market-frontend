@@ -46,6 +46,20 @@ export function getListingDetails(
   );
 }
 
+type GetListingContactsResponse =
+  operations["getListingContacts"]["responses"][200]["content"]["application/json"];
+
+/**
+ * Полные телефон и email продавца (кнопка «Показать контакты»). Без входа; в деталке
+ * контакты только маской, чтобы их не было в HTML. 404: объявление снято.
+ */
+export function getListingContacts(listingId: string): Promise<GetListingContactsResponse> {
+  return apiFetch<GetListingContactsResponse>(
+    `/api/v1/listing/${encodeURIComponent(listingId)}/contacts`,
+    { cache: "no-store" },
+  );
+}
+
 type CreateListingRequest =
   operations["createListing"]["requestBody"]["content"]["application/json"];
 type CreateListingResponse =
@@ -78,6 +92,7 @@ export function getCreatedListingId(response: unknown): string | null {
 type Schemas = components["schemas"];
 
 export type ListingSeller = Schemas["ListingSeller"];
+export type ListingContacts = Schemas["ListingContactsResponse"];
 export type ListingSpecGroup = Schemas["ListingSpecGroup"];
 export type ListingSpecItem = Schemas["ListingSpecItem"];
 export type MyListingCard = Schemas["MyListingCardResponse"];

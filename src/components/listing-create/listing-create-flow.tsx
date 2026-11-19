@@ -78,6 +78,15 @@ export function ListingCreateFlow({
     [previewFields, coverUrl],
   );
   const previewCity = cities.find((city) => city.id === preview.cityId)?.name ?? null;
+  const selectedOrganization = organizations.find((item) => item.id === organizationId);
+  const previewOrganization =
+    selectedOrganization?.shop_name || selectedOrganization?.legal_name || "Организация";
+  const previewSubcategory =
+    tree
+      .find((rubric) => rubric.id === selection.rubricId)
+      ?.categories.find((category) => category.id === selection.categoryId)
+      ?.subcategories.find((subcategory) => subcategory.id === selection.subcategoryId)?.name ??
+    null;
 
   function loadForm(subcategoryId: string) {
     requestRef.current?.abort();
@@ -169,6 +178,8 @@ export function ListingCreateFlow({
       <ListingPreview
         data={preview}
         cityName={previewCity}
+        organizationName={previewOrganization}
+        subcategoryName={previewSubcategory}
         className="hidden lg:sticky lg:top-8 lg:flex"
       />
     </div>

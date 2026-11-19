@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 
+import { ListingCardSkeleton } from "@/components/catalog/listing-card-skeleton";
 import { Pagination } from "@/components/common/pagination";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,7 +30,6 @@ import { AccountPageHeader } from "./account-page-header";
 import { MY_LISTINGS_LOGIN_PATH } from "./login-path";
 import { MyListingActionsMenu } from "./my-listing-actions-menu";
 import { MyListingCard } from "./my-listing-card";
-import { MyListingCardSkeleton } from "./my-listing-card-skeleton";
 import { MyListingsFilters, type MyListingsFilterChange } from "./my-listings-filters";
 import { MY_LISTING_ACTION_TEXT, MY_LISTINGS_TEXT } from "./my-listings-labels";
 import { MyListingsNotice } from "./my-listings-notice";
@@ -97,7 +97,7 @@ export function MyListingsView({ tree }: { tree: CategoryTree }) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
 
-  // Организации нужны только для фильтра: при ошибке (кроме 401) фильтра просто нет.
+  // Организации нужны только для фильтра: при ошибке (кроме 401) в нём только «Все организации».
   useEffect(() => {
     let active = true;
     getOrganizations().then(
@@ -256,7 +256,7 @@ export function MyListingsView({ tree }: { tree: CategoryTree }) {
       {(loaded === null || (loaded.status === "error" && pending)) && (
         <div role="status" aria-label={MY_LISTINGS_TEXT.loading} className="flex flex-col gap-4">
           {[0, 1, 2].map((index) => (
-            <MyListingCardSkeleton key={index} />
+            <ListingCardSkeleton key={index} view="list" />
           ))}
         </div>
       )}

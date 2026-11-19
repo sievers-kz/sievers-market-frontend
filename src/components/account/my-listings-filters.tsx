@@ -104,27 +104,25 @@ export function MyListingsFilters({ params, organizations, tree, onChange }: MyL
       <StatusTabs value={params.status} onChange={(status) => onChange({ status })} />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        {/* Одна организация или ни одной: выбирать не из чего. */}
-        {organizations.length >= 2 && (
-          <Select
-            value={params.organizationId ?? ALL}
-            onValueChange={(value) =>
-              onChange({ organizationId: value === ALL ? undefined : value })
-            }
-          >
-            <SelectTrigger aria-label={MY_LISTINGS_TEXT.organizationLabel} className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent position="popper">
-              <SelectItem value={ALL}>{MY_LISTINGS_TEXT.organizationAll}</SelectItem>
-              {organizations.map((organization) => (
-                <SelectItem key={organization.id} value={organization.id}>
-                  <span className="truncate">{organizationLabel(organization)}</span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        {/* Показывается всегда, при любом числе организаций (даже при одной или сбое загрузки). */}
+        <Select
+          value={params.organizationId ?? ALL}
+          onValueChange={(value) =>
+            onChange({ organizationId: value === ALL ? undefined : value })
+          }
+        >
+          <SelectTrigger aria-label={MY_LISTINGS_TEXT.organizationLabel} className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent position="popper">
+            <SelectItem value={ALL}>{MY_LISTINGS_TEXT.organizationAll}</SelectItem>
+            {organizations.map((organization) => (
+              <SelectItem key={organization.id} value={organization.id}>
+                <span className="truncate">{organizationLabel(organization)}</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         <Select
           value={params.categoryId ?? ALL}

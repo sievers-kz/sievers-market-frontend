@@ -1,6 +1,6 @@
+import { ListingCardSkeleton } from "@/components/catalog/listing-card-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { MyListingCardSkeleton } from "./my-listing-card-skeleton";
 import { MY_LISTINGS_TEXT } from "./my-listings-labels";
 
 /**
@@ -27,7 +27,7 @@ export function MyListingsSkeleton() {
         </div>
       </div>
       {[0, 1, 2].map((index) => (
-        <MyListingCardSkeleton key={index} />
+        <ListingCardSkeleton key={index} view="list" />
       ))}
     </div>
   );

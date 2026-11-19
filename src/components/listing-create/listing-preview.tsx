@@ -7,11 +7,24 @@ interface ListingPreviewProps {
   data: ListingPreviewData;
   /** Название выбранного города (`data.cityId` → список городов во Flow). */
   cityName: string | null;
+  /** Название магазина или юридическое выбранной организации; пока не выбрана — «Организация». */
+  organizationName: string;
+  /** Название выбранной подкатегории; `null`, пока не выбрана. */
+  subcategoryName: string | null;
   className?: string;
 }
 
-/** Карточка объявления, какой её увидят в каталоге. Не ссылка и не фокусируется. */
-export function ListingPreview({ data, cityName, className }: ListingPreviewProps) {
+/**
+ * Карточка объявления, какой её увидят в каталоге (та же `ListingCardView`). Не ссылка и не
+ * фокусируется. Заглушки только у названия, цены и фото; пустые остальные поля не рисуются.
+ */
+export function ListingPreview({
+  data,
+  cityName,
+  organizationName,
+  subcategoryName,
+  className,
+}: ListingPreviewProps) {
   return (
     <aside className={cn("flex flex-col gap-2", className)}>
       <p className="text-sm text-muted-foreground">Так объявление увидят в каталоге</p>
@@ -24,6 +37,10 @@ export function ListingPreview({ data, cityName, className }: ListingPreviewProp
           imageSrc={data.imageUrl}
           localImage
           imagePlaceholder="Фото появится здесь"
+          organizationName={organizationName}
+          condition={data.condition}
+          subcategory={subcategoryName}
+          dateLabel="сегодня"
         />
       </div>
     </aside>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useId, useState } from "react";
 
-import { buildCatalogHref } from "@/components/catalog/search-params";
+import { buildCatalogHref, categoryScope } from "@/components/catalog/search-params";
 import type { CategoryTree } from "@/lib/api/catalog";
 import { cn } from "@/lib/utils";
 
@@ -62,7 +62,7 @@ export function CatalogMenuPanel({
         {active.categories.map((category) => (
           <div key={category.id} className="flex min-w-0 flex-col gap-2">
             <Link
-              href={buildCatalogHref(category.id, { page: 1, view: "grid" })}
+              href={buildCatalogHref(categoryScope(category.id), { page: 1, view: "grid" })}
               onClick={onNavigate}
               className={cn("self-start font-semibold transition-colors hover:text-primary", LINK_FOCUS)}
             >
@@ -73,7 +73,7 @@ export function CatalogMenuPanel({
                 {category.subcategories.map((subcategory) => (
                   <li key={subcategory.id}>
                     <Link
-                      href={buildCatalogHref(category.id, {
+                      href={buildCatalogHref(categoryScope(category.id), {
                         subcategoryId: subcategory.id,
                         page: 1,
                         view: "grid",

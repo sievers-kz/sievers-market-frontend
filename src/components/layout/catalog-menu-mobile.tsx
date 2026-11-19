@@ -4,7 +4,7 @@ import { LayoutGrid, XIcon } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-import { buildCatalogHref } from "@/components/catalog/search-params";
+import { buildCatalogHref, categoryScope } from "@/components/catalog/search-params";
 import {
   Accordion,
   AccordionContent,
@@ -75,7 +75,7 @@ export function CatalogMenuMobile({
                   <AccordionContent className="pl-4">
                     <Accordion type="multiple">
                       {rubric.categories.map((category) => {
-                        const categoryHref = buildCatalogHref(category.id, { page: 1, view: "grid" });
+                        const categoryHref = buildCatalogHref(categoryScope(category.id), { page: 1, view: "grid" });
                         if (category.subcategories.length === 0) {
                           return (
                             <div key={category.id} className="border-b last:border-b-0">
@@ -99,7 +99,7 @@ export function CatalogMenuMobile({
                                 {category.subcategories.map((subcategory) => (
                                   <li key={subcategory.id}>
                                     <Link
-                                      href={buildCatalogHref(category.id, {
+                                      href={buildCatalogHref(categoryScope(category.id), {
                                         subcategoryId: subcategory.id,
                                         page: 1,
                                         view: "grid",

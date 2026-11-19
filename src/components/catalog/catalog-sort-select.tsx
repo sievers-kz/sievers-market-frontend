@@ -9,38 +9,61 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { ListingSearchSort } from "@/lib/api/listing";
 
-import { buildCatalogHref, CATALOG_SORTS, type CatalogParams } from "./search-params";
+import {
+  buildCatalogHref,
+  scopeSorts,
+  type CatalogParams,
+  type CatalogScope,
+  type CatalogSort,
+} from "./search-params";
 
-const SORT_OPTIONS: readonly { value: ListingSearchSort; label: string }[] = [
-  { value: "newest", label: "Сначала новые" },
-  { value: "price_asc", label: "Сначала дешевле" },
-  { value: "price_desc", label: "Сначала дороже" },
-];
+/** Значение пункта «без сортировки»: Radix Select не принимает пустую строку. */
+const DEFAULT_VALUE = "default";
+
+const SORT_LABELS: Record<CatalogSort, string> = {
+  newest: "Сначала новые",
+  price_asc: "Сначала дешевле",
+  price_desc: "Сначала дороже",
+};
+
+/** Подпись порядка по умолчанию (без `sort` в URL). */
+const DEFAULT_LABELS: Record<CatalogScope["kind"], string> = {
+  category: SORT_LABELS.newest,
+  search: "По релевантности",
+};
 
 interface CatalogSortSelectProps {
-  categoryId: string;
+  scope: CatalogScope;
   params: CatalogParams;
 }
 
-/** Сортировка сразу пишет URL (страница 1). «Сначала новые» по умолчанию: параметра нет. */
-export function CatalogSortSelect({ categoryId, params }: CatalogSortSelectProps) {
+/**
+ * Сортировка сразу пишет URL (страница 1). Первый пункт — порядок по умолчанию, без параметра:
+ * в каталоге «Сначала новые», в поиске «По релевантности» (бэкенд без `sort` при тексте
+ * сортирует по релевантности).
+ */
+export function CatalogSortSelect({ scope, params }: CatalogSortSelectProps) {
   const router = useRouter();
+  const sorts = scopeSorts(scope.kind);
+  const options = [
+    { value: DEFAULT_VALUE, label: DEFAULT_LABELS[scope.kind] },
+    ...sorts.map((sort) => ({ value: sort, label: SORT_LABELS[sort] })),
+  ];
 
   return (
     <Select
-      value={params.sort ?? "newest"}
+      value={params.sort ?? DEFAULT_VALUE}
       onValueChange={(value) => {
-        const sort = CATALOG_SORTS.find((item) => item === value);
-        router.push(buildCatalogHref(categoryId, { ...params, sort, page: 1 }), { scroll: false });
+        const sort = sorts.find((item) => item === value);
+        router.push(buildCatalogHref(scope, { ...params, sort, page: 1 }), { scroll: false });
       }}
     >
       <SelectTrigger aria-label="Сортировка" className="min-w-0">
         <SelectValue />
       </SelectTrigger>
       <SelectContent position="popper" align="end">
-        {SORT_OPTIONS.map((option) => (
+        {options.map((option) => (
           <SelectItem key={option.value} value={option.value}>
             {option.label}
           </SelectItem>

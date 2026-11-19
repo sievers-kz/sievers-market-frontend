@@ -1,19 +1,19 @@
 import { Pagination } from "@/components/common/pagination";
 
-import { buildCatalogHref, type CatalogParams } from "./search-params";
+import { buildCatalogHref, type CatalogParams, type CatalogScope } from "./search-params";
 
 interface CatalogPaginationProps {
-  categoryId: string;
+  scope: CatalogScope;
   params: CatalogParams;
   pages: number;
 }
 
-export function CatalogPagination({ categoryId, params, pages }: CatalogPaginationProps) {
+export function CatalogPagination({ scope, params, pages }: CatalogPaginationProps) {
   return (
     <Pagination
       current={params.page}
       pages={pages}
-      hrefFor={(page) => buildCatalogHref(categoryId, { ...params, page })}
+      hrefFor={(page) => buildCatalogHref(scope, { ...params, page })}
     />
   );
 }

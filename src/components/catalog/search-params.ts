@@ -2,10 +2,30 @@ import type { ListingSearchSort } from "@/lib/api/listing";
 
 export type CatalogView = "grid" | "list";
 
-/** `newest` это порядок по умолчанию: в URL и в параметрах его нет. */
-export type CatalogSort = Exclude<ListingSearchSort, "newest">;
+/**
+ * Сортировка из URL. Без неё у каталога «Сначала новые» (`newest` в URL каталога не пишем),
+ * у поиска «По релевантности» (там `newest` обычное значение).
+ */
+export type CatalogSort = ListingSearchSort;
 
-export const CATALOG_SORTS = ["price_asc", "price_desc"] as const satisfies readonly CatalogSort[];
+const SEARCH_SORTS = ["newest", "price_asc", "price_desc"] as const satisfies readonly CatalogSort[];
+
+/**
+ * Откуда список: категория каталога (`/catalog/<id>`) или поиск по тексту (`/search?q=`).
+ * От области зависят адрес ссылок, запрос и порядок по умолчанию.
+ */
+export type CatalogScope =
+  | { kind: "category"; categoryId: string }
+  | { kind: "search"; text: string };
+
+export function categoryScope(categoryId: string): CatalogScope {
+  return { kind: "category", categoryId };
+}
+
+/** Допустимые значения `sort` в URL области: у каталога `newest` и есть «без сортировки». */
+export function scopeSorts(kind: CatalogScope["kind"]): readonly CatalogSort[] {
+  return kind === "search" ? SEARCH_SORTS : SEARCH_SORTS.filter((sort) => sort !== "newest");
+}
 
 /** Префикс параметров атрибутов: `f.condition=used`, `f.brand=<uuid>`. */
 export const ATTRIBUTE_PARAM_PREFIX = "f.";
@@ -85,8 +105,17 @@ export function orderRange(min: number | undefined, max: number | undefined): Nu
   return { min, max };
 }
 
-function parseSort(value: string | undefined): CatalogSort | undefined {
-  return CATALOG_SORTS.find((sort) => sort === value);
+function parseSort(value: string | undefined, kind: CatalogScope["kind"]): CatalogSort | undefined {
+  return scopeSorts(kind).find((sort) => sort === value);
+}
+
+/** Длина `q`: бэкенд её не ограничивает, но длинная строка ломает заголовок и адрес. */
+export const SEARCH_TEXT_MAX_LENGTH = 200;
+
+/** Текст поиска из `q`: пробелы по краям обрезаются и схлопываются; пустой — `undefined`. */
+export function parseSearchText(value: string | string[] | undefined): string | undefined {
+  const text = first(value)?.replace(/\s+/g, " ").trim().slice(0, SEARCH_TEXT_MAX_LENGTH).trim();
+  return text || undefined;
 }
 
 /**
@@ -94,8 +123,13 @@ function parseSort(value: string | undefined): CatalogSort | undefined {
  * `sort`, `f.<ключ>`, `f.<ключ>.min`, `f.<ключ>.max`. Некорректные значения молча отбрасываются (или заменяются значениями
  * по умолчанию). Атрибуты здесь проверяются только по форме: допустимые ключи и значения
  * знает `getSubcategoryFilters`, их отсекает `sanitizeCatalogParams` на странице.
+ * `kind` решает, какие значения `sort` допустимы (`scopeSorts`). Текст поиска (`q`) разбирает
+ * `parseSearchText`.
  */
-export function parseCatalogParams(searchParams: RawSearchParams): CatalogParams {
+export function parseCatalogParams(
+  searchParams: RawSearchParams,
+  kind: CatalogScope["kind"] = "category",
+): CatalogParams {
   const rawPage = Number(first(searchParams.page));
   const rawSubcategory = first(searchParams.subcategory);
   const rawCity = first(searchParams.city);
@@ -138,7 +172,7 @@ export function parseCatalogParams(searchParams: RawSearchParams): CatalogParams
     priceMin,
     priceMax,
     cityId: isUuid(rawCity) ? rawCity : undefined,
-    sort: parseSort(first(searchParams.sort)),
+    sort: parseSort(first(searchParams.sort), kind),
     attributes,
     ranges,
   };
@@ -170,9 +204,13 @@ export function withSubcategory(params: CatalogParams, subcategoryId: string | u
   return { ...params, subcategoryId, attributes: undefined, ranges: undefined, page: 1 };
 }
 
-/** Ссылка на каталог. Значения по умолчанию (`page=1`, `view=grid`, без сортировки) не пишем. */
-export function buildCatalogHref(categoryId: string, params: CatalogParams): string {
+/**
+ * Ссылка на список области: `/catalog/<id>?…` или `/search?q=…&…`. Значения по умолчанию
+ * (`page=1`, `view=grid`, без сортировки) не пишем.
+ */
+export function buildCatalogHref(scope: CatalogScope, params: CatalogParams): string {
   const query = new URLSearchParams();
+  if (scope.kind === "search") query.set("q", scope.text);
   if (params.subcategoryId) query.set("subcategory", params.subcategoryId);
   if (params.priceMin !== undefined) query.set("price_min", String(params.priceMin));
   if (params.priceMax !== undefined) query.set("price_max", String(params.priceMax));
@@ -188,5 +226,6 @@ export function buildCatalogHref(categoryId: string, params: CatalogParams): str
   if (params.page > 1) query.set("page", String(params.page));
   if (params.view !== "grid") query.set("view", params.view);
   const search = query.toString();
-  return `/catalog/${categoryId}${search ? `?${search}` : ""}`;
+  const path = scope.kind === "search" ? "/search" : `/catalog/${scope.categoryId}`;
+  return `${path}${search ? `?${search}` : ""}`;
 }

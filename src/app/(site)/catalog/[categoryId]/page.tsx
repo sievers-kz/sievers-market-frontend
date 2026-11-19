@@ -8,7 +8,7 @@ import { CatalogFilterPanel } from "@/components/catalog/catalog-filter-panel";
 import { CatalogFiltersDialog } from "@/components/catalog/catalog-filters-dialog";
 import { CatalogListings } from "@/components/catalog/catalog-listings";
 import { CatalogListingsSkeleton } from "@/components/catalog/catalog-listings-skeleton";
-import { buildCatalogHref, parseCatalogParams } from "@/components/catalog/search-params";
+import { buildCatalogHref, categoryScope, parseCatalogParams } from "@/components/catalog/search-params";
 import { loadCatalogFilters } from "@/components/catalog/load-catalog-filters";
 import { SubcategoryNav } from "@/components/catalog/subcategory-nav";
 import { Container } from "@/components/layout/container";
@@ -48,10 +48,11 @@ export default async function CatalogPage({
   // Города и атрибуты подкатегории: по ним отсекаем лишнее из URL (иначе поиск ответит 422).
   const filterData = await loadCatalogFilters(rawParams.subcategoryId);
   const catalogParams = sanitizeCatalogParams(rawParams, filterData);
-  const catalogHref = buildCatalogHref(category.id, catalogParams);
+  const scope = categoryScope(category.id);
+  const catalogHref = buildCatalogHref(scope, catalogParams);
   const chips = getFilterChips(catalogParams, filterData);
   const formProps = {
-    categoryId: category.id,
+    scope,
     params: catalogParams,
     cities: filterData.cities,
     fields: filterData.fields,
@@ -88,10 +89,10 @@ export default async function CatalogPage({
             <Suspense
               key={catalogHref}
               fallback={
-                <CatalogListingsSkeleton categoryId={category.id} params={catalogParams} chips={chips} />
+                <CatalogListingsSkeleton scope={scope} params={catalogParams} chips={chips} />
               }
             >
-              <CatalogListings categoryId={category.id} params={catalogParams} chips={chips} />
+              <CatalogListings scope={scope} params={catalogParams} chips={chips} />
             </Suspense>
           </section>
         </div>

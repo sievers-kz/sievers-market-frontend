@@ -31,11 +31,12 @@ import {
   resetCatalogFilters,
   type CatalogFilters,
   type CatalogParams,
+  type CatalogScope,
   type NumberRange,
 } from "./search-params";
 
 export interface CatalogFilterFormProps {
-  categoryId: string;
+  scope: CatalogScope;
   params: CatalogParams;
   cities: readonly CityOption[] | null;
   /** `null`: подкатегория не выбрана или фильтры не загрузились. */
@@ -138,7 +139,7 @@ function FilterCard({ value, title, children }: { value: string; title: string; 
  * списка. Начальные значения из URL; при смене URL форму пересоздаёт `key` у родителя.
  */
 export function CatalogFilterForm({
-  categoryId,
+  scope,
   params,
   cities,
   fields,
@@ -198,7 +199,7 @@ export function CatalogFilterForm({
   const canReset = hasCatalogFilters(formFilters) || hasCatalogFilters(appliedFilters);
 
   function navigate(next: CatalogParams) {
-    router.push(buildCatalogHref(categoryId, next));
+    router.push(buildCatalogHref(scope, next));
     onNavigate?.();
   }
 

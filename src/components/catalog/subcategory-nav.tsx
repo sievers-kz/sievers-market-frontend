@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { components } from "@/lib/api/schema";
 import { cn } from "@/lib/utils";
 
-import { buildCatalogHref, withSubcategory, type CatalogParams } from "./search-params";
+import { buildCatalogHref, categoryScope, withSubcategory, type CatalogParams } from "./search-params";
 
 type SubcategoryResponse = components["schemas"]["SubcategoryResponse"];
 
@@ -39,7 +39,7 @@ export function SubcategoryNav({
           return (
             <li key={item.id ?? "all"} className="shrink-0">
               <Link
-                href={buildCatalogHref(categoryId, withSubcategory(params, item.id))}
+                href={buildCatalogHref(categoryScope(categoryId), withSubcategory(params, item.id))}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
                   "block rounded-lg px-4 py-2 text-sm whitespace-nowrap transition-colors lg:whitespace-normal",

@@ -19,14 +19,18 @@ export function formatSpecValue({ value, unit }: Pick<ListingSpecItem, "value" |
   return unit ? `${text} ${unit}` : text;
 }
 
+/** Якорь блока для ссылки «Все характеристики». */
+export const LISTING_SPECS_ID = "specs";
+
 export function ListingSpecs({ groups, className }: ListingSpecsProps) {
   const visible = groups.filter((group) => group.items.length > 0);
   if (visible.length === 0) return null;
 
   return (
     <section
+      id={LISTING_SPECS_ID}
       aria-labelledby="listing-specs-title"
-      className={cn("flex flex-col gap-6 rounded-2xl bg-card p-6", className)}
+      className={cn("flex scroll-mt-8 flex-col gap-6 rounded-2xl bg-card p-6", className)}
     >
       <h2 id="listing-specs-title" className="text-xl font-semibold">
         Характеристики

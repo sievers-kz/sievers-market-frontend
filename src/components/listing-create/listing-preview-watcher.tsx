@@ -12,18 +12,19 @@ interface ListingPreviewWatcherProps {
 }
 
 /**
- * Подписка на четыре поля превью. Отдельный компонент без разметки: ввод перерисовывает
+ * Подписка на поля превью (атрибут `condition` есть не у каждой подкатегории). Отдельный компонент без разметки: ввод перерисовывает
  * только его, а не всю форму.
  */
 export function ListingPreviewWatcher({ control, onChange }: ListingPreviewWatcherProps) {
-  const [title, price, currency, cityId] = useWatch({
+  const [title, price, currency, cityId, conditionValue] = useWatch({
     control,
-    name: ["title", "price", "currency", "city_id"],
+    name: ["title", "price", "currency", "city_id", "attributes.condition"],
   });
+  const condition = typeof conditionValue === "string" && conditionValue ? conditionValue : null;
 
   useEffect(() => {
-    onChange({ title: title.trim(), price: parsePreviewPrice(price), currency, cityId });
-  }, [title, price, currency, cityId, onChange]);
+    onChange({ title: title.trim(), price: parsePreviewPrice(price), currency, cityId, condition });
+  }, [title, price, currency, cityId, condition, onChange]);
 
   return null;
 }

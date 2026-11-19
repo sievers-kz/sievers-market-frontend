@@ -11,6 +11,8 @@ export interface ListingPreviewData {
   price: number | null;
   currency: ListingFormValues["currency"];
   cityId: string;
+  /** Значение атрибута `condition` (`new`/`used`); у подкатегории без него `null`. */
+  condition: string | null;
   /** Локальный `blob:` первого загруженного фото (обложки). */
   imageUrl: string | null;
 }
@@ -23,6 +25,7 @@ export const EMPTY_PREVIEW_FIELDS: ListingPreviewFields = {
   price: null,
   currency: "KZT",
   cityId: "",
+  condition: null,
 };
 
 /** Цена в форме хранится строкой; для превью годится только целое больше 0. */

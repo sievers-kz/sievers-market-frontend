@@ -71,10 +71,14 @@ export {
   deleteOrganization,
   getOrganization,
   getOrganizations,
+  getOrganizationsCatalog,
 } from "./organization";
 export type {
+  OrganizationCard,
   OrganizationDetails,
   OrganizationKind,
   OrganizationListItem,
+  OrganizationsCatalog,
+  OrganizationsCatalogQuery,
   RegistryStatus,
 } from "./organization";

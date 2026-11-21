@@ -31,7 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Закрытые от индексации сборки отдают пустую карту.
   if (!isIndexable()) return [];
 
-  const entries: SitemapEntry[] = [{ url: SITE_URL }];
+  const entries: SitemapEntry[] = [{ url: SITE_URL }, { url: `${SITE_URL}/organizations` }];
 
   try {
     const tree = await getCategoryTree();

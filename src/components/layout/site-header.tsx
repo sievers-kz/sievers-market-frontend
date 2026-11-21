@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { getCategoryTree, type CategoryTree } from "@/lib/api/catalog";
 
 import { CatalogMegaMenu } from "./catalog-mega-menu";
@@ -28,7 +30,13 @@ export async function SiteHeader() {
         <div className="flex items-center gap-4">
           <SiteLogo />
           <div className="ml-auto flex items-center gap-4">
-            {/* Слот под разделы («Поставщики», «Поддержка»): состав ещё не решён. */}
+            {/* Слот под разделы («Поддержка» и др.): состав ещё не решён. На телефоне места нет. */}
+            <Link
+              href="/organizations"
+              className="hidden text-sm font-medium text-primary hover:underline md:inline"
+            >
+              Организации
+            </Link>
             <HeaderUserBlock />
           </div>
         </div>

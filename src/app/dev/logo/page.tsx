@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 
 import { LogoPreviewGuestActionsOnPrimary } from "@/components/dev-logo/logo-preview-guest-actions-on-primary";
 import { LogoPreviewImage } from "@/components/dev-logo/logo-preview-image";
+import { LogoPreviewLightTwoTierHeader } from "@/components/dev-logo/logo-preview-light-two-tier-header";
+import { LogoPreviewOneTierHeader } from "@/components/dev-logo/logo-preview-one-tier-header";
 import { LogoPreviewRow } from "@/components/dev-logo/logo-preview-row";
 import { LogoPreviewSingleHeader } from "@/components/dev-logo/logo-preview-single-header";
 import { SiteLogo } from "@/components/layout/site-logo";
@@ -34,6 +36,26 @@ export default function DevLogoPage() {
 
   return (
     <main className="flex-1">
+      <LogoPreviewRow
+        index={11}
+        title="Один ярус: логотип h-6 | Каталог | поиск | Организации | Подать | Войти | Регистрация"
+        note="Кнопки и поиск h-10, «Каталог» призрак (только вид, меню не открывает). Ниже lg только логотип и бургер. «Регистрация» с xl (1280): на 1024 с ней поиск сжался бы до ≈136 px. На 1280 всё в ряд, поиск ≈392 px."
+        header={
+          <LogoPreviewOneTierHeader
+            logo={<LogoPreviewImage src={OUTLINED_SRC} {...OUTLINED} className="h-6" />}
+          />
+        }
+      />
+      <LogoPreviewRow
+        index={12}
+        title="Два яруса, лёгкий нижний: логотип h-6 + Организации, Войти, Регистрация / Каталог, поиск, Подать"
+        note="Нижний ярус h-10, «Каталог» призрак (только вид). Ниже md только логотип и бургер (бургер только вид)."
+        header={
+          <LogoPreviewLightTwoTierHeader
+            logo={<LogoPreviewImage src={OUTLINED_SRC} {...OUTLINED} className="h-6" />}
+          />
+        }
+      />
       <LogoPreviewRow
         index={7}
         title="Одноуровневая, header-outlined, h-6 (≈165×24), белый фон"

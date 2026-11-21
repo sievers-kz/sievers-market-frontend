@@ -11,7 +11,7 @@ import { SiteLogo } from "./site-logo";
 
 /**
  * Шапка сайта. Сама не читает cookie: пользователя загружает клиентский
- * `HeaderUserProvider` в `(site)/layout.tsx` (один запрос на шапку и кабинет),
+ * `HeaderUserProvider` в `SiteChrome` (layout групп `(site)` и `(auth)`; один запрос на шапку и кабинет),
  * иначе все страницы под шапкой стали бы динамическими (см. docs/pages/header.md).
  * Дерево каталога для мега-меню читается здесь: запрос кэшируется и не трогает cookie.
  */

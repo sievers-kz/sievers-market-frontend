@@ -1,10 +1,12 @@
 import Link from "next/link";
 
 import { getCategoryTree, type CategoryTree } from "@/lib/api/catalog";
+import { cn } from "@/lib/utils";
 
 import { CatalogMegaMenu } from "./catalog-mega-menu";
 import { Container } from "./container";
-import { HeaderSearch } from "./header-search";
+import { HEADER_NAV_ITEM_CLASS } from "./header-nav-item";
+import { HeaderSearchOverlay } from "./header-search-overlay";
 import { HeaderUserBlock } from "./header-user-block";
 import { PostListingButton } from "./post-listing-button";
 import { SiteLogo } from "./site-logo";
@@ -25,26 +27,29 @@ export async function SiteHeader() {
   }
 
   return (
-    <header className="border-b bg-background">
-      <Container className="flex flex-col gap-4 py-4">
-        <div className="flex items-center gap-4">
-          <SiteLogo />
-          <div className="ml-auto flex items-center gap-4">
-            {/* Слот под разделы («Поддержка» и др.): состав ещё не решён. На телефоне места нет. */}
-            <Link
-              href="/organizations"
-              className="hidden text-sm font-medium text-primary hover:underline md:inline"
-            >
+    // `relative z-50`: от шапки позиционируется поле поиска, и она остаётся над затемнением поиска.
+    <header className="relative z-50 border-b bg-background">
+      <Container className="py-4">
+        <CatalogMegaMenu
+          tree={tree}
+          logo={<SiteLogo />}
+          links={
+            <Link href="/organizations" className={HEADER_NAV_ITEM_CLASS}>
               Организации
             </Link>
-            <HeaderUserBlock />
-          </div>
-        </div>
-
-        <CatalogMegaMenu tree={tree}>
-          <HeaderSearch />
-          <PostListingButton className="hidden md:inline-flex" />
-        </CatalogMegaMenu>
+          }
+          actions={
+            <>
+              {/* На md–lg центральной части нет: «Организации» справа; на телефоне места нет. */}
+              <Link href="/organizations" className={cn(HEADER_NAV_ITEM_CLASS, "hidden md:inline-flex lg:hidden")}>
+                Организации
+              </Link>
+              <HeaderSearchOverlay />
+              <PostListingButton variant="outline" className="hidden md:inline-flex" />
+              <HeaderUserBlock />
+            </>
+          }
+        />
       </Container>
     </header>
   );

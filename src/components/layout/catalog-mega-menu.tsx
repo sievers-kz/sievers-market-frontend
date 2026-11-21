@@ -1,9 +1,8 @@
 "use client";
 
-import { LayoutGrid } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
-import { Button } from "@/components/ui/button";
 import { Popover, PopoverAnchor, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useCloseOnNavigation } from "@/hooks/use-close-on-navigation";
 import type { CategoryTree } from "@/lib/api/catalog";
@@ -11,20 +10,26 @@ import type { CategoryTree } from "@/lib/api/catalog";
 import { CatalogMenuMobile } from "./catalog-menu-mobile";
 import { getCatalogMenuMessage } from "./catalog-menu-message";
 import { CatalogMenuPanel } from "./catalog-menu-panel";
+import { HEADER_NAV_ITEM_CLASS } from "./header-nav-item";
 
 /**
- * Мега-меню каталога в нижнем ряду шапки (docs/pages/mega-menu.md).
- * С `lg` кнопка открывает немодальную панель (`Popover`) под шапкой шириной во весь ряд:
- * якорь панели это сам ряд, поэтому остальные элементы ряда приходят через `children`.
- * Ниже `lg` работает `CatalogMenuMobile` (окно во весь экран).
+ * Мега-меню каталога (docs/pages/mega-menu.md) и вместе с ним раскладка ряда шапки.
+ * С `lg` ряд — сетка `1fr auto 1fr`: слева `logo`, по центру «Каталог» и `links` (точно по центру),
+ * справа `actions`. «Каталог» открывает по клику немодальную панель (`Popover`) под шапкой шириной во весь
+ * ряд: якорь панели это сам ряд, поэтому логотип, ссылки и действия приходят пропами.
+ * Ниже `lg` центральной части нет, справа иконка `CatalogMenuMobile` (окно во весь экран) и `actions`.
  * `tree === null`: дерево не загрузилось, меню показывает сообщение.
  */
 export function CatalogMegaMenu({
   tree,
-  children,
+  logo,
+  links,
+  actions,
 }: {
   tree: CategoryTree | null;
-  children: ReactNode;
+  logo: ReactNode;
+  links?: ReactNode;
+  actions: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   useCloseOnNavigation(setOpen);
@@ -34,15 +39,24 @@ export function CatalogMegaMenu({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverAnchor asChild>
-        <div className="flex items-center gap-4">
-          <PopoverTrigger asChild>
-            <Button type="button" size="lg" className="hidden px-6 lg:inline-flex">
-              <LayoutGrid aria-hidden />
-              Каталог
-            </Button>
-          </PopoverTrigger>
-          <CatalogMenuMobile tree={tree} className="lg:hidden" />
-          {children}
+        <div className="flex items-center gap-4 lg:grid lg:grid-cols-[1fr_auto_1fr]">
+          <div className="flex min-w-0 items-center">{logo}</div>
+          <nav aria-label="Разделы" className="hidden items-center gap-4 lg:flex">
+            <PopoverTrigger asChild>
+              <button type="button" className={HEADER_NAV_ITEM_CLASS}>
+                Каталог
+                <ChevronDown
+                  aria-hidden
+                  className="size-4 transition-transform duration-200 in-data-[state=open]:rotate-180"
+                />
+              </button>
+            </PopoverTrigger>
+            {links}
+          </nav>
+          <div className="ml-auto flex items-center justify-end gap-2 md:gap-4 lg:ml-0">
+            <CatalogMenuMobile tree={tree} className="lg:hidden" />
+            {actions}
+          </div>
         </div>
       </PopoverAnchor>
       <PopoverContent

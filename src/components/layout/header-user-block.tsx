@@ -2,7 +2,7 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { GuestActions } from "./guest-actions";
+import { GuestAccountButton } from "./guest-account-button";
 import { useHeaderUser } from "./header-user-provider";
 import { UserMenu } from "./user-menu";
 
@@ -10,10 +10,10 @@ export function HeaderUserBlock() {
   const { state, showGuest } = useHeaderUser();
 
   if (state.status === "loading") {
-    return <Skeleton className="h-10 w-24 md:w-64" />;
+    return <Skeleton className="size-10 rounded-full" />;
   }
 
   const { user } = state;
-  if (user === null) return <GuestActions />;
+  if (user === null) return <GuestAccountButton />;
   return <UserMenu user={user} onLoggedOut={showGuest} />;
 }

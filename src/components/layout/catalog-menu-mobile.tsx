@@ -45,9 +45,14 @@ export function CatalogMenuMobile({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button type="button" size="lg" aria-label="Каталог" className={cn("px-4 md:px-6", className)}>
-          <LayoutGrid aria-hidden />
-          <span className="hidden md:inline">Каталог</span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label="Каталог"
+          className={cn("text-foreground hover:bg-muted", className)}
+        >
+          <LayoutGrid aria-hidden className="size-5" />
         </Button>
       </DialogTrigger>
       <DialogContent

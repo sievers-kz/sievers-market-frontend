@@ -1,7 +1,7 @@
+import { LayoutGrid } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { CatalogMegaMenu } from "@/components/layout/catalog-mega-menu";
 import { Container } from "@/components/layout/container";
 import { GuestActions } from "@/components/layout/guest-actions";
 import { HeaderSearch } from "@/components/layout/header-search";
@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Временная копия вёрстки `SiteHeader` для страницы `/dev/logo`, без запросов к API:
- * дерево каталога `null`, блок пользователя всегда гость, «Подать объявление» ведёт на `/listings/new`.
+ * «Каталог» без меню, блок пользователя всегда гость, «Подать объявление» ведёт на `/listings/new`.
  * Логотип и фон шапки приходят пропами. Удалить вместе со страницей.
  */
 export function LogoPreviewHeader({
@@ -36,7 +36,12 @@ export function LogoPreviewHeader({
           </div>
         </div>
 
-        <CatalogMegaMenu tree={null}>
+        {/* Прежний нижний ряд: залитая «Каталог» (только вид), поиск, «Подать объявление». */}
+        <div className="flex items-center gap-4">
+          <Button type="button" size="lg" aria-label="Каталог" className="px-4 md:px-6">
+            <LayoutGrid aria-hidden />
+            <span className="hidden md:inline">Каталог</span>
+          </Button>
           <HeaderSearch />
           <Button
             asChild
@@ -45,7 +50,7 @@ export function LogoPreviewHeader({
           >
             <Link href="/listings/new">Подать объявление</Link>
           </Button>
-        </CatalogMegaMenu>
+        </div>
       </Container>
     </header>
   );

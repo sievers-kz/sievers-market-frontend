@@ -14,13 +14,17 @@ import {
 interface HeaderSearchFormProps {
   /** Текст в поле при показе: на `/search` это текущий `q`, иначе пусто. */
   initialText: string;
+  /** Поставить фокус в поле при показе (оверлей поиска). */
+  autoFocus?: boolean;
+  /** Вызывается после перехода на `/search` (оверлей закрывается). */
+  onSubmitted?: () => void;
 }
 
 /**
  * Поле поиска в шапке. Enter или кнопка с лупой ведут на `/search?q=<текст>` (пробелы по краям
  * обрезаются, как при разборе `q`); пустой запрос или из одних пробелов не отправляется.
  */
-export function HeaderSearchForm({ initialText }: HeaderSearchFormProps) {
+export function HeaderSearchForm({ initialText, autoFocus, onSubmitted }: HeaderSearchFormProps) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState(initialText);
@@ -34,6 +38,7 @@ export function HeaderSearchForm({ initialText }: HeaderSearchFormProps) {
       return;
     }
     router.push(buildCatalogHref({ kind: "search", text }, { page: 1, view: "grid" }));
+    onSubmitted?.();
   }
 
   return (
@@ -47,6 +52,7 @@ export function HeaderSearchForm({ initialText }: HeaderSearchFormProps) {
         maxLength={SEARCH_TEXT_MAX_LENGTH}
         enterKeyHint="search"
         autoComplete="off"
+        autoFocus={autoFocus}
         aria-label="Поиск по объявлениям"
         placeholder="Поиск по объявлениям"
         className="h-12 w-full rounded-md border border-transparent bg-muted pr-14 pl-4 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/30"

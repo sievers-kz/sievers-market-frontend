@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { Container } from "@/components/layout/container";
+import { cn } from "@/lib/utils";
 
 import { LogoPreviewHeader } from "./logo-preview-header";
 
@@ -15,6 +16,7 @@ export function LogoPreviewRow({
   logo,
   headerClassName,
   header,
+  className,
 }: {
   index: number;
   title: string;
@@ -22,9 +24,10 @@ export function LogoPreviewRow({
   logo?: ReactNode;
   headerClassName?: string;
   header?: ReactNode;
+  className?: string;
 }) {
   return (
-    <section className="border-b-8 border-muted" aria-labelledby={`variant-${index}`}>
+    <section className={cn("border-b-8 border-muted", className)} aria-labelledby={`variant-${index}`}>
       <Container className="py-4">
         <h2 id={`variant-${index}`} className="text-sm font-semibold">
           {index}. {title}

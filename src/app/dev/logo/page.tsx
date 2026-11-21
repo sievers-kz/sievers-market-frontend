@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { LogoPreviewGuestActionsOnPrimary } from "@/components/dev-logo/logo-preview-guest-actions-on-primary";
 import { LogoPreviewImage } from "@/components/dev-logo/logo-preview-image";
+import { LogoPreviewCenteredHeader } from "@/components/dev-logo/logo-preview-centered-header";
 import { LogoPreviewNavHeader } from "@/components/dev-logo/logo-preview-nav-header";
 import { LogoPreviewLightTwoTierHeader } from "@/components/dev-logo/logo-preview-light-two-tier-header";
 import { LogoPreviewOneTierHeader } from "@/components/dev-logo/logo-preview-one-tier-header";
@@ -37,6 +38,41 @@ export default function DevLogoPage() {
 
   return (
     <main className="flex-1">
+      <LogoPreviewRow
+        index={15}
+        title="Точное центрирование (grid 1fr auto 1fr), монолитная: логотип h-6 | разделы | поиск, Подать, аккаунт"
+        note="Иконка аккаунта ведёт на /login (aria-label «Войти»). Мега-меню как в строке 13. Иконка поиска и бургер только для вида. Ниже lg логотип и бургер. На 1024 правая колонка шире половины свободного места, разделы смещены влево на ≈18 px (с 1280 ровно по центру)."
+        header={
+          <LogoPreviewCenteredHeader
+            post="text"
+            logo={<LogoPreviewImage src={OUTLINED_SRC} {...OUTLINED} className="h-6" />}
+          />
+        }
+      />
+      <LogoPreviewRow
+        index={16}
+        title="Как 15, «Подать объявление» иконкой «+»"
+        note="«+» с подсказкой title. На телефоне «+» тоже виден, рядом с бургером."
+        header={
+          <LogoPreviewCenteredHeader
+            post="icon"
+            logo={<LogoPreviewImage src={OUTLINED_SRC} {...OUTLINED} className="h-6" />}
+          />
+        }
+      />
+      <LogoPreviewRow
+        index={17}
+        title="Как 15, плавающая: карточка на фоне bg-muted, отступ сверху 16"
+        note="Панель каталога открывается карточкой под шапкой, со скруглением шапки (отступ 8). На 1024 разделы смещены влево на ≈43 px (с 1280 ровно по центру)."
+        className="bg-muted"
+        header={
+          <LogoPreviewCenteredHeader
+            post="text"
+            floating
+            logo={<LogoPreviewImage src={OUTLINED_SRC} {...OUTLINED} className="h-6" />}
+          />
+        }
+      />
       <LogoPreviewRow
         index={13}
         title="Разделы по центру, гость: логотип h-6 | Каталог ▾, Организации, О нас, Поддержка | поиск, Подать, Войти"

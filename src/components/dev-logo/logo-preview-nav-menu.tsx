@@ -28,8 +28,19 @@ const ITEM_CLASS =
  * «Каталог» открывает панель на всю ширину шапки: по наведению, по клику и с клавиатуры;
  * закрывается при уходе курсора и по Esc. Категории — заглушки.
  * Родитель (`header`) должен быть `relative`: панель позиционируется относительно него.
+ * `viewportClassName` и `panelClassName` меняют вид панели (например, карточка под плавающей шапкой).
  */
-export function LogoPreviewNavMenu({ className }: { className?: string }) {
+export function LogoPreviewNavMenu({
+  className,
+  viewportWrapperClassName,
+  viewportClassName,
+  panelClassName,
+}: {
+  className?: string;
+  viewportWrapperClassName?: string;
+  viewportClassName?: string;
+  panelClassName?: string;
+}) {
   return (
     <NavigationMenu.Root aria-label="Разделы" className={cn("justify-center", className)}>
       <NavigationMenu.List className="flex items-center gap-4">
@@ -42,7 +53,7 @@ export function LogoPreviewNavMenu({ className }: { className?: string }) {
             />
           </NavigationMenu.Trigger>
           <NavigationMenu.Content>
-            <Container className="grid grid-cols-4 gap-8 py-8">
+            <Container className={cn("grid grid-cols-4 gap-8 py-8", panelClassName)}>
               {CATALOG_STUB.map((column) => (
                 <div key={column.title}>
                   <NavigationMenu.Link asChild>
@@ -77,8 +88,10 @@ export function LogoPreviewNavMenu({ className }: { className?: string }) {
         ))}
       </NavigationMenu.List>
 
-      <div className="absolute inset-x-0 top-full z-50">
-        <NavigationMenu.Viewport className="w-full border-b bg-background shadow-md" />
+      <div className={cn("absolute inset-x-0 top-full z-50", viewportWrapperClassName)}>
+        <NavigationMenu.Viewport
+          className={cn("w-full border-b bg-background shadow-md", viewportClassName)}
+        />
       </div>
     </NavigationMenu.Root>
   );

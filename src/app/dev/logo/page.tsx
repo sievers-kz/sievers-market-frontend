@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { LogoPreviewGuestActionsOnPrimary } from "@/components/dev-logo/logo-preview-guest-actions-on-primary";
 import { LogoPreviewImage } from "@/components/dev-logo/logo-preview-image";
 import { LogoPreviewRow } from "@/components/dev-logo/logo-preview-row";
+import { LogoPreviewSingleHeader } from "@/components/dev-logo/logo-preview-single-header";
 import { SiteLogo } from "@/components/layout/site-logo";
 
 export const metadata: Metadata = {
@@ -20,12 +22,60 @@ const PRIMARY_NOTE =
 const H10_NOTE =
   "На 375 px логотип h-10 (276 px) вместе с «Войти» не помещается: ряд шире экрана примерно на 11 px, появляется горизонтальная прокрутка.";
 
+const SINGLE_NOTE =
+  "Одноуровневая шапка: логотип и кнопки гостя. На телефоне только «Войти» (как в текущей шапке).";
+
+const OUTLINED_SRC = "/brand/sievers-logo-header-outlined.svg";
+const OUTLINED_WHITE_SRC = "/brand/sievers-logo-header-outlined-white.svg";
+
 /** Временная страница сравнения логотипов (только вне production). Удалить вместе с `components/dev-logo/`. */
 export default function DevLogoPage() {
   if (process.env.NODE_ENV === "production") notFound();
 
   return (
     <main className="flex-1">
+      <LogoPreviewRow
+        index={7}
+        title="Одноуровневая, header-outlined, h-6 (≈165×24), белый фон"
+        note={SINGLE_NOTE}
+        header={
+          <LogoPreviewSingleHeader
+            logo={<LogoPreviewImage src={OUTLINED_SRC} {...OUTLINED} className="h-6" />}
+          />
+        }
+      />
+      <LogoPreviewRow
+        index={8}
+        title="Одноуровневая, header-outlined, h-8 (≈221×32), белый фон"
+        note={SINGLE_NOTE}
+        header={
+          <LogoPreviewSingleHeader
+            logo={<LogoPreviewImage src={OUTLINED_SRC} {...OUTLINED} className="h-8" />}
+          />
+        }
+      />
+      <LogoPreviewRow
+        index={9}
+        title="Одноуровневая, header-outlined, h-10 (≈276×40, по высоте кнопок), белый фон"
+        note={`${SINGLE_NOTE} На телефоне логотип h-8: при h-10 (276 px) вместе с «Войти» ряд не помещается в 375.`}
+        header={
+          <LogoPreviewSingleHeader
+            logo={<LogoPreviewImage src={OUTLINED_SRC} {...OUTLINED} className="h-8 md:h-10" />}
+          />
+        }
+      />
+      <LogoPreviewRow
+        index={10}
+        title="Одноуровневая, header-outlined-white, h-8 (≈221×32), фон bg-primary"
+        note={`${SINGLE_NOTE} Кнопки перекрашены: «Войти» белая рамка и текст, «Регистрация» белая заливка, текст primary.`}
+        header={
+          <LogoPreviewSingleHeader
+            className="bg-primary"
+            logo={<LogoPreviewImage src={OUTLINED_WHITE_SRC} {...OUTLINED} className="h-8" />}
+            actions={<LogoPreviewGuestActionsOnPrimary />}
+          />
+        }
+      />
       <LogoPreviewRow
         index={1}
         title="Сейчас: SiteLogo (currentcolor), h-8, белый фон"

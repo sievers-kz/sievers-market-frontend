@@ -4,10 +4,9 @@ import Link from "next/link";
 import { NavigationMenu } from "radix-ui";
 import { useEffect, useId, useRef, useState } from "react";
 
-import { buildCatalogHref, categoryScope } from "@/components/catalog/search-params";
-import type { CategoryTree } from "@/lib/api/catalog";
 import { cn } from "@/lib/utils";
 
+import { catalogCategoryHref, catalogSubcategoryHref, type CatalogMenuTree } from "./catalog-menu-tree";
 import { Container } from "./container";
 
 /** Сколько подкатегорий показывать под категорией; остальные за ссылкой «Смотреть все». */
@@ -22,7 +21,7 @@ const LINK_FOCUS = "rounded-sm focus-visible:ring-2 focus-visible:ring-ring focu
  * колонками (3 на `md`, 4 на `lg`) с подкатегориями. Три уровня: рубрика → категория → подкатегория.
  * Ссылки — `NavigationMenu.Link`, поэтому выбор ссылки закрывает меню.
  */
-export function CatalogMenuPanel({ rubrics }: { rubrics: CategoryTree }) {
+export function CatalogMenuPanel({ rubrics }: { rubrics: CatalogMenuTree }) {
   const [activeId, setActiveId] = useState(rubrics[0]?.id);
   const hoverTimer = useRef<number | undefined>(undefined);
   const baseId = useId();
@@ -75,7 +74,7 @@ export function CatalogMenuPanel({ rubrics }: { rubrics: CategoryTree }) {
         className="grid grid-cols-3 gap-x-8 gap-y-8 lg:grid-cols-4"
       >
         {active.categories.map((category) => {
-          const categoryHref = buildCatalogHref(categoryScope(category.id), { page: 1, view: "grid" });
+          const categoryHref = catalogCategoryHref(category.id);
           const shown = category.subcategories.slice(0, SUBCATEGORY_LIMIT);
           const hasMore = category.subcategories.length > SUBCATEGORY_LIMIT;
           return (
@@ -94,11 +93,7 @@ export function CatalogMenuPanel({ rubrics }: { rubrics: CategoryTree }) {
                     <li key={subcategory.id}>
                       <NavigationMenu.Link asChild>
                         <Link
-                          href={buildCatalogHref(categoryScope(category.id), {
-                            subcategoryId: subcategory.id,
-                            page: 1,
-                            view: "grid",
-                          })}
+                          href={catalogSubcategoryHref(category.id, subcategory.id)}
                           className={cn(
                             "text-sm text-muted-foreground transition-colors hover:text-primary",
                             LINK_FOCUS,

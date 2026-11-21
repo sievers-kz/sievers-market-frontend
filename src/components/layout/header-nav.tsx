@@ -7,11 +7,11 @@ import { NavigationMenu } from "radix-ui";
 import { useCallback, useRef, useState } from "react";
 
 import { useCloseOnNavigation } from "@/hooks/use-close-on-navigation";
-import type { CategoryTree } from "@/lib/api/catalog";
 import { cn } from "@/lib/utils";
 
 import { getCatalogMenuMessage } from "./catalog-menu-message";
 import { CatalogMenuPanel } from "./catalog-menu-panel";
+import type { CatalogMenuTree } from "./catalog-menu-tree";
 import { Container } from "./container";
 import { HEADER_NAV_ITEM_CLASS } from "./header-nav-item";
 import { HEADER_NAV_LINKS, isHeaderNavActive } from "./header-nav-links";
@@ -26,7 +26,7 @@ const HOVER_CLICK_GRACE_MS = 1000;
  * при уходе курсора, по Esc, при выборе ссылки и смене маршрута. Активный раздел — `primary`.
  * Панель позиционируется от `header` (он `relative`): на всю ширину под шапкой, содержимое в `Container`.
  */
-export function HeaderNav({ tree, className }: { tree: CategoryTree | null; className?: string }) {
+export function HeaderNav({ tree, className }: { tree: CatalogMenuTree | null; className?: string }) {
   const pathname = usePathname();
   const [value, setValue] = useState("");
   const lastPointerType = useRef("");

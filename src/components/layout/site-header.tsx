@@ -1,5 +1,6 @@
-import { getCategoryTree, type CategoryTree } from "@/lib/api/catalog";
+import { getCategoryTree } from "@/lib/api/catalog";
 
+import { toCatalogMenuTree, type CatalogMenuTree } from "./catalog-menu-tree";
 import { Container } from "./container";
 import { HeaderMobileMenu } from "./header-mobile-menu";
 import { HeaderNav } from "./header-nav";
@@ -15,9 +16,10 @@ import { SiteLogo } from "./site-logo";
  * Дерево каталога для мега-меню читается здесь: запрос кэшируется и не трогает cookie.
  */
 export async function SiteHeader() {
-  let tree: CategoryTree | null;
+  // В клиент уходит облегчённое дерево (только id и названия): оно нужно меню и бургеру.
+  let tree: CatalogMenuTree | null;
   try {
-    tree = await getCategoryTree();
+    tree = toCatalogMenuTree(await getCategoryTree());
   } catch {
     // Шапка и страница не ломаются: меню покажет «Каталог временно недоступен».
     tree = null;

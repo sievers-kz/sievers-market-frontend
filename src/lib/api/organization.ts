@@ -7,11 +7,17 @@ export type OrganizationKind = Schemas["Kind"];
 export type RegistryStatus = Schemas["RegistryStatus"];
 export type OrganizationListItem = Schemas["OrganizationListResponse"];
 export type OrganizationDetails = Schemas["OrganizationResponse"];
+export type OrganizationCard = Schemas["OrganizationCardResponse"];
 
 type GetOrganizationsResponse =
   operations["getOrganizations"]["responses"][200]["content"]["application/json"];
 type GetOrganizationResponse =
   operations["getOrganization"]["responses"][200]["content"]["application/json"];
+export type OrganizationsCatalogQuery = NonNullable<
+  operations["getOrganizationsCatalog"]["parameters"]["query"]
+>;
+export type OrganizationsCatalog =
+  operations["getOrganizationsCatalog"]["responses"][200]["content"]["application/json"];
 type CreateOrganizationRequest =
   operations["createOrganization"]["requestBody"]["content"]["application/json"];
 type CreateOrganizationResponse =
@@ -29,6 +35,23 @@ const BASE = "/api/v1/customer";
 export function getOrganizations(): Promise<GetOrganizationsResponse> {
   return apiFetch<GetOrganizationsResponse>(`${BASE}/organizations`, {
     cache: "no-store",
+  });
+}
+
+/** Каталог меняется, только когда админ подтверждает организацию: минута свежести хватает. */
+const CATALOG_REVALIDATE_SECONDS = 60;
+
+/**
+ * Публичный каталог организаций (без авторизации), по названию от А до Я.
+ * `q` ищет по названию магазина и юридическому названию. Cookie не нужны.
+ */
+export function getOrganizationsCatalog(
+  query: OrganizationsCatalogQuery,
+): Promise<OrganizationsCatalog> {
+  return apiFetch<OrganizationsCatalog>(`${BASE}/organizations/catalog`, {
+    query,
+    next: { revalidate: CATALOG_REVALIDATE_SECONDS },
+    forwardCookies: false,
   });
 }
 

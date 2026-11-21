@@ -444,6 +444,73 @@ export interface paths {
         patch: operations["changeOrganizationContactEmail"];
         trace?: never;
     };
+    "/api/v1/customer/organizations/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Каталог организаций
+         * @description Публичный список организаций, по названию от А до Я. Авторизация не нужна.
+         *     В каталог попадают только организации, найденные в реестре и с подтверждённым владением.
+         *     Параметр `q` ищет по названию магазина и юридическому названию без учёта регистра.
+         *     В карточке есть число активных объявлений; ИИН/БИН и контактов в ней нет.
+         */
+        get: operations["getOrganizationsCatalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/organization/{organization_id}/ownership/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Подтверждение владения организацией
+         * @description Только для администратора (право `verify:organization`). Администратор вручную убедился, что организацией
+         *     владеет её заявитель. Подтвердить можно только организацию, найденную в реестре (`registry_status = verified`).
+         *     После подтверждения организация появляется в публичном каталоге продавцов. Повторный вызов безопасен.
+         */
+        post: operations["confirmOrganizationOwnership"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/organization/{organization_id}/ownership/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Снятие подтверждения владения
+         * @description Только для администратора (право `verify:organization`). Снимает подтверждение владения:
+         *     организация пропадает из публичного каталога продавцов. Публиковать объявления она по-прежнему может,
+         *     если найдена в реестре. Повторный вызов безопасен.
+         */
+        post: operations["revokeOrganizationOwnership"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reference/brand/": {
         parameters: {
             query?: never;
@@ -2294,6 +2361,29 @@ export interface components {
             /** Label */
             label: string;
         };
+        /**
+         * OrganizationCardResponse
+         * @description Публичная карточка организации в каталоге. Без ИИН/БИН и контактов: они не для открытой выдачи.
+         */
+        OrganizationCardResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Name
+             * @description Название магазина, а если оно не задано, юридическое название
+             */
+            name: string;
+            /** Logo Media Id */
+            logo_media_id?: string | null;
+            /**
+             * Listings Count
+             * @description Число активных объявлений организации
+             */
+            listings_count: number;
+        };
         /** OrganizationListResponse */
         OrganizationListResponse: {
             /**
@@ -2372,6 +2462,17 @@ export interface components {
         PaginatedResponse_MyListingCardResponse_: {
             /** Items */
             items: components["schemas"]["MyListingCardResponse"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Pages */
+            pages: number;
+        };
+        /** PaginatedResponse[OrganizationCardResponse] */
+        PaginatedResponse_OrganizationCardResponse_: {
+            /** Items */
+            items: components["schemas"]["OrganizationCardResponse"][];
             /** Total */
             total: number;
             /** Page */
@@ -3447,6 +3548,128 @@ export interface operations {
                 content: {
                     "application/json": unknown;
                 };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    getOrganizationsCatalog: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                page?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_OrganizationCardResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirmOrganizationOwnership: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Client-Type"?: string | null;
+            };
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revokeOrganizationOwnership: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Client-Type"?: string | null;
+            };
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Not Found */
             404: {

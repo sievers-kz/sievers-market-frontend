@@ -15,13 +15,15 @@ import { cn } from "@/lib/utils";
 
 import { getCatalogMenuMessage } from "./catalog-menu-message";
 import { HEADER_NAV_LINKS, isHeaderNavActive } from "./header-nav-links";
+import { MobileAccountSection } from "./mobile-account-section";
 
 const LINK =
   "flex min-h-10 items-center rounded-sm py-2 text-sm transition-colors hover:text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none";
 
 /**
  * Меню ниже `lg`: бургер открывает окно во весь экран. Внутри каталог аккордеоном
- * рубрика → категория → подкатегории и разделы шапки («Организации», «О нас», «Поддержка»).
+ * рубрика → категория → подкатегории, разделы шапки («Организации», «О нас», «Поддержка»)
+ * и «Личный кабинет» (гостю «Войти»).
  */
 export function HeaderMobileMenu({
   tree,
@@ -143,6 +145,8 @@ export function HeaderMobileMenu({
               })}
             </ul>
           </nav>
+
+          <MobileAccountSection pathname={pathname} onNavigate={close} />
         </div>
       </DialogContent>
     </Dialog>

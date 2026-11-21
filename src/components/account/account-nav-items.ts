@@ -24,6 +24,17 @@ export const ACCOUNT_NAV_GROUPS: AccountNavGroup[] = [
   ],
 ];
 
+/** Пункт кабинета со страницей. */
+export type AccountMenuItem = AccountNavItem & { href: string };
+
+/**
+ * Пункты кабинета для меню пользователя в шапке и мобильного меню: те же, что в сайдбаре,
+ * без пунктов без страницы (`href: null`), в том же порядке («Аккаунт» первым).
+ */
+export const ACCOUNT_MENU_ITEMS: AccountMenuItem[] = ACCOUNT_NAV_GROUPS.flat().filter(
+  (item): item is AccountMenuItem => item.href !== null,
+);
+
 export const ACCOUNT_NAV_TEXT = {
   ariaLabel: "Личный кабинет",
   soon: "Скоро",

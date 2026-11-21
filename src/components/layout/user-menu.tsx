@@ -1,8 +1,9 @@
 "use client";
 
-import { Building2, ChevronDown, FileText, LogOut } from "lucide-react";
+import { LogOut, UserRound } from "lucide-react";
 import Link from "next/link";
 
+import { ACCOUNT_MENU_ITEMS } from "@/components/account/account-nav-items";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,9 +15,12 @@ import {
 import { useLogout } from "@/hooks/use-logout";
 import type { CurrentUser } from "@/lib/api";
 
-import { getAvatarLetter, getDisplayName } from "./user-display";
+import { getDisplayName } from "./user-display";
 
-/** Аватар с меню. Пункты добавляем, только когда есть страницы (docs/pages/header.md). */
+/**
+ * Блок вошедшего пользователя: круглая иконка (`bg-primary/10`) с меню. Пункты — страницы кабинета
+ * (`ACCOUNT_MENU_ITEMS`, как в сайдбаре, без пунктов без страницы), затем «Выйти».
+ */
 export function UserMenu({
   user,
   onLoggedOut,
@@ -29,15 +33,13 @@ export function UserMenu({
 
   return (
     <DropdownMenu>
+      {/* Radix сам ставит `aria-haspopup="menu"` и `aria-expanded`. */}
       <DropdownMenuTrigger
         disabled={pending}
         aria-label="Меню пользователя"
-        className="flex h-10 items-center gap-1 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50"
+        className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary outline-none transition-colors hover:bg-primary/20 focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50"
       >
-        <span className="flex size-10 items-center justify-center rounded-full bg-muted font-semibold">
-          {getAvatarLetter(user)}
-        </span>
-        <ChevronDown aria-hidden className="size-4 text-muted-foreground" />
+        <UserRound aria-hidden className="size-5" />
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
@@ -49,18 +51,14 @@ export function UserMenu({
           <span className="truncate text-xs text-muted-foreground">{user.email}</span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild className="px-2 py-2">
-          <Link href="/account/organizations">
-            <Building2 aria-hidden />
-            Мои организации
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild className="px-2 py-2">
-          <Link href="/account/listings">
-            <FileText aria-hidden />
-            Мои объявления
-          </Link>
-        </DropdownMenuItem>
+        {ACCOUNT_MENU_ITEMS.map((item) => (
+          <DropdownMenuItem key={item.href} asChild className="px-2 py-2">
+            <Link href={item.href}>
+              <item.icon aria-hidden />
+              {item.label}
+            </Link>
+          </DropdownMenuItem>
+        ))}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           disabled={pending}

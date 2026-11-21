@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { LogoPreviewGuestActionsOnPrimary } from "@/components/dev-logo/logo-preview-guest-actions-on-primary";
 import { LogoPreviewImage } from "@/components/dev-logo/logo-preview-image";
+import { LogoPreviewNavHeader } from "@/components/dev-logo/logo-preview-nav-header";
 import { LogoPreviewLightTwoTierHeader } from "@/components/dev-logo/logo-preview-light-two-tier-header";
 import { LogoPreviewOneTierHeader } from "@/components/dev-logo/logo-preview-one-tier-header";
 import { LogoPreviewRow } from "@/components/dev-logo/logo-preview-row";
@@ -36,6 +37,28 @@ export default function DevLogoPage() {
 
   return (
     <main className="flex-1">
+      <LogoPreviewRow
+        index={13}
+        title="Разделы по центру, гость: логотип h-6 | Каталог ▾, Организации, О нас, Поддержка | поиск, Подать, Войти"
+        note="«Каталог» открывает панель-заглушку по наведению, клику и с клавиатуры (Radix NavigationMenu), закрывается при уходе курсора и по Esc. Ссылки «О нас», «Поддержка» и категории ведут на #. Иконка поиска и бургер только для вида. Ниже lg только логотип и бургер."
+        header={
+          <LogoPreviewNavHeader
+            variant="guest"
+            logo={<LogoPreviewImage src={OUTLINED_SRC} {...OUTLINED} className="h-6" />}
+          />
+        }
+      />
+      <LogoPreviewRow
+        index={14}
+        title="Разделы по центру, после входа: … | поиск, Подать, Личный кабинет"
+        note="То же, что строка 13, вместо «Войти» одна контурная кнопка «Личный кабинет» (ведёт на /account). На 1024–1279 у неё только иконка: с текстом ряд не помещается."
+        header={
+          <LogoPreviewNavHeader
+            variant="user"
+            logo={<LogoPreviewImage src={OUTLINED_SRC} {...OUTLINED} className="h-6" />}
+          />
+        }
+      />
       <LogoPreviewRow
         index={11}
         title="Один ярус: логотип h-6 | Каталог | поиск | Организации | Подать | Войти | Регистрация"

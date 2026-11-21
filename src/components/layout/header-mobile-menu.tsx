@@ -14,7 +14,7 @@ import { MobileCatalogDrilldown } from "./mobile-catalog-drilldown";
 import { SiteLogo } from "./site-logo";
 
 /**
- * Бургер ниже `lg`: панель слева (`Sheet`; на телефоне во всю ширину, не шире `max-w-sm`).
+ * Бургер ниже `lg`: панель слева (`Sheet`) на весь экран (`sm:max-w-none` снимает `max-w-sm` из ui/sheet).
  * Сверху логотип и закрытие, ниже столбец экранов `MobileCatalogDrilldown`. Кабинета и входа здесь нет.
  */
 export function HeaderMobileMenu({
@@ -46,7 +46,7 @@ export function HeaderMobileMenu({
         side="left"
         showCloseButton={false}
         aria-describedby={undefined}
-        className="w-full max-w-sm gap-0 sm:max-w-sm"
+        className="w-full gap-0 sm:max-w-none"
       >
         <SheetTitle className="sr-only">Меню</SheetTitle>
         <div className="flex items-center justify-between gap-4 border-b px-4 py-2">

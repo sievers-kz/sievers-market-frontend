@@ -19,7 +19,7 @@ import { PostListingButton } from "./post-listing-button";
 
 const ROW =
   "flex min-h-10 w-full items-center justify-between gap-2 rounded-sm px-2 py-2 text-left text-base transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none";
-const SECTION_TITLE = "px-2 pt-2 text-xs font-medium text-muted-foreground";
+const SECTION_TITLE = "px-2 pt-2 pb-1 text-lg font-semibold text-foreground";
 /** Сдвиг столбца экранов: глубина 0, 1, 2. */
 const TRACK_SHIFT = ["translate-x-0", "-translate-x-full", "-translate-x-[200%]"] as const;
 
@@ -73,7 +73,9 @@ export function MobileCatalogDrilldown({
     const byId = focusTarget.current
       ? panel.querySelector<HTMLElement>(`[data-node-id="${focusTarget.current}"]`)
       : null;
-    (byId ?? panel.querySelector<HTMLElement>("button, a"))?.focus();
+    // `preventScroll`: в момент фокуса новый экран ещё за краем (сдвиг только начался), и без него
+    // браузер прокрутил бы контейнер к элементу — прокрутка сложилась бы со сдвигом (пустой экран).
+    (byId ?? panel.querySelector<HTMLElement>("button, a"))?.focus({ preventScroll: true });
   }, [depth]);
 
   const panelProps = (level: number) => ({
@@ -93,7 +95,8 @@ export function MobileCatalogDrilldown({
   );
 
   return (
-    <div className="relative min-h-0 flex-1 overflow-hidden">
+    // `overflow-clip`, а не `hidden`: такой контейнер нельзя прокрутить даже программно.
+    <div className="relative min-h-0 flex-1 overflow-clip">
       <div ref={trackRef} className={cn("flex h-full transition-transform duration-300 ease-out", TRACK_SHIFT[depth])}>
         {/* Экран 0 */}
         <div {...panelProps(0)}>

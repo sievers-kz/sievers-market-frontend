@@ -1,11 +1,8 @@
-import Link from "next/link";
-
 import { getCategoryTree, type CategoryTree } from "@/lib/api/catalog";
-import { cn } from "@/lib/utils";
 
-import { CatalogMegaMenu } from "./catalog-mega-menu";
 import { Container } from "./container";
-import { HEADER_NAV_ITEM_CLASS } from "./header-nav-item";
+import { HeaderMobileMenu } from "./header-mobile-menu";
+import { HeaderNav } from "./header-nav";
 import { HeaderSearchOverlay } from "./header-search-overlay";
 import { HeaderUserBlock } from "./header-user-block";
 import { PostListingButton } from "./post-listing-button";
@@ -27,29 +24,20 @@ export async function SiteHeader() {
   }
 
   return (
-    // `relative z-50`: от шапки позиционируется поле поиска, и она остаётся над затемнением поиска.
+    // `relative z-50`: от шапки позиционируются панель каталога и поле поиска, и она выше затемнения поиска.
     <header className="relative z-50 border-b bg-background">
-      <Container className="py-4">
-        <CatalogMegaMenu
-          tree={tree}
-          logo={<SiteLogo />}
-          links={
-            <Link href="/organizations" className={HEADER_NAV_ITEM_CLASS}>
-              Организации
-            </Link>
-          }
-          actions={
-            <>
-              {/* На md–lg центральной части нет: «Организации» справа; на телефоне места нет. */}
-              <Link href="/organizations" className={cn(HEADER_NAV_ITEM_CLASS, "hidden md:inline-flex lg:hidden")}>
-                Организации
-              </Link>
-              <HeaderSearchOverlay />
-              <PostListingButton variant="outline" className="hidden md:inline-flex" />
-              <HeaderUserBlock />
-            </>
-          }
-        />
+      {/* С `lg` сетка 1fr auto 1fr: разделы точно по центру страницы. */}
+      <Container className="flex items-center gap-4 py-4 lg:grid lg:grid-cols-[1fr_auto_1fr]">
+        <div className="flex min-w-0 items-center">
+          <SiteLogo />
+        </div>
+        <HeaderNav tree={tree} className="hidden lg:flex" />
+        <div className="ml-auto flex items-center justify-end gap-2 md:gap-4 lg:ml-0">
+          <HeaderSearchOverlay />
+          <PostListingButton variant="outline" className="hidden md:inline-flex" />
+          <HeaderUserBlock />
+          <HeaderMobileMenu tree={tree} className="lg:hidden" />
+        </div>
       </Container>
     </header>
   );

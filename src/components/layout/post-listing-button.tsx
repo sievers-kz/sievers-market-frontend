@@ -20,7 +20,7 @@ export function PostListingButton({
   variant = "cta",
 }: {
   className?: string;
-  /** `cta` — заливка cta, h-12 (как было); `outline` — контурная primary, h-10, с «+» (для шапки). */
+  /** `cta` — заливка cta, h-12 (как было); `outline` — контурная primary, h-10, «+» и текст (на lg–xl только «+»), для шапки. */
   variant?: "cta" | "outline";
 }) {
   const { state } = useHeaderUser();
@@ -37,9 +37,10 @@ export function PostListingButton({
           className,
         )}
       >
-        <Link href={href} aria-label="Подать объявление">
+        <Link href={href} aria-label="Подать объявление" title="Подать объявление">
           <Plus aria-hidden />
-          <span className="hidden md:inline">Подать объявление</span>
+          {/* На lg–xl только «+»: иначе правая часть шапки шире половины и разделы уходят с центра. */}
+          <span className="hidden md:inline lg:hidden xl:inline">Подать объявление</span>
         </Link>
       </Button>
     );

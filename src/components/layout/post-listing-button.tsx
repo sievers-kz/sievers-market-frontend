@@ -18,8 +18,13 @@ const LOGIN_PATH = `/login?next=${encodeURIComponent(NEW_LISTING_PATH)}`;
 export function PostListingButton({
   className,
   variant = "cta",
+  alwaysShowLabel = false,
+  onClick,
 }: {
   className?: string;
+  /** Для `outline`: текст на любой ширине (мобильное меню), а не только с `md`. */
+  alwaysShowLabel?: boolean;
+  onClick?: () => void;
   /** `cta` — заливка cta, h-12 (как было); `outline` — контурная primary, h-10, «+» и текст (на lg–xl только «+»), для шапки. */
   variant?: "cta" | "outline";
 }) {
@@ -37,10 +42,12 @@ export function PostListingButton({
           className,
         )}
       >
-        <Link href={href} aria-label="Подать объявление" title="Подать объявление">
+        <Link href={href} onClick={onClick} aria-label="Подать объявление" title="Подать объявление">
           <Plus aria-hidden />
           {/* На lg–xl только «+»: иначе правая часть шапки шире половины и разделы уходят с центра. */}
-          <span className="hidden md:inline lg:hidden xl:inline">Подать объявление</span>
+          <span className={alwaysShowLabel ? undefined : "hidden md:inline lg:hidden xl:inline"}>
+            Подать объявление
+          </span>
         </Link>
       </Button>
     );
@@ -52,7 +59,9 @@ export function PostListingButton({
       size="lg"
       className={cn("bg-cta text-cta-foreground hover:bg-cta/90", className)}
     >
-      <Link href={href}>Подать объявление</Link>
+      <Link href={href} onClick={onClick}>
+        Подать объявление
+      </Link>
     </Button>
   );
 }

@@ -14,19 +14,23 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useLogout } from "@/hooks/use-logout";
 import type { CurrentUser } from "@/lib/api";
+import { cn } from "@/lib/utils";
 
+import { USER_BUTTON_CLASS } from "./user-button-class";
 import { getDisplayName } from "./user-display";
 
 /**
- * Блок вошедшего пользователя: круглая иконка (`bg-primary/10`) с меню. Пункты — страницы кабинета
+ * Блок вошедшего пользователя с `md`: круглая иконка (`bg-primary/10`) с выпадающим меню. Пункты — страницы кабинета
  * (`ACCOUNT_MENU_ITEMS`, как в сайдбаре, без пунктов без страницы), затем «Выйти».
  */
 export function UserMenu({
   user,
   onLoggedOut,
+  className,
 }: {
   user: CurrentUser;
   onLoggedOut: () => void;
+  className?: string;
 }) {
   const { logout, pending } = useLogout(onLoggedOut);
   const displayName = getDisplayName(user);
@@ -37,14 +41,14 @@ export function UserMenu({
       <DropdownMenuTrigger
         disabled={pending}
         aria-label="Меню пользователя"
-        className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary outline-none transition-colors hover:bg-primary/20 focus-visible:ring-2 focus-visible:ring-ring/50 disabled:opacity-50"
+        className={cn(USER_BUTTON_CLASS, className)}
       >
         <UserRound aria-hidden className="size-5" />
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
         collisionPadding={16}
-        className="w-64 max-w-[calc(100vw-32px)] p-2"
+        className="max-w-[calc(100vw-32px)] min-w-56 p-2"
       >
         <DropdownMenuLabel className="flex flex-col gap-1 px-2 py-2 font-normal">
           <span className="truncate font-medium">{displayName ?? "Пользователь"}</span>

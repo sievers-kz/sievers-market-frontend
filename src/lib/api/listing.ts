@@ -1,4 +1,5 @@
 import { apiFetch } from "./client";
+import type { RequestOptions } from "./client";
 import type { components, operations } from "./schema";
 
 type GetListingsCatalogQuery =
@@ -8,9 +9,35 @@ type GetListingsCatalogResponse =
 
 export function getListingsCatalog(
   query: GetListingsCatalogQuery,
+  options?: Pick<RequestOptions, "next" | "forwardCookies">,
 ): Promise<GetListingsCatalogResponse> {
   return apiFetch<GetListingsCatalogResponse>("/api/v1/listing/catalog", {
     query,
+    ...options,
+  });
+}
+
+export type ListingSearchQuery = components["schemas"]["ListingSearchQuery"];
+export type ListingSearchSort = components["schemas"]["ListingSearchSort"];
+type SearchListingResponse =
+  operations["searchListing"]["responses"][200]["content"]["application/json"];
+
+/**
+ * Поиск с фильтрами (Meilisearch). POST, по умолчанию без кэша. Публичный, cookie не нужны.
+ * `cacheOptions.revalidate` включает кэш Next на заданное число секунд (главная: свежие объявления).
+ * 422: недопустимый ключ атрибута, атрибуты без подкатегории, неверный uuid.
+ */
+export function searchListing(
+  body: ListingSearchQuery,
+  cacheOptions?: { revalidate: number },
+): Promise<SearchListingResponse> {
+  return apiFetch<SearchListingResponse>("/api/v1/listing/search", {
+    method: "POST",
+    body,
+    ...(cacheOptions
+      ? { next: { revalidate: cacheOptions.revalidate } }
+      : { cache: "no-store" as const }),
+    forwardCookies: false,
   });
 }
 
@@ -22,6 +49,20 @@ export function getListingDetails(
 ): Promise<GetListingDetailsResponse> {
   return apiFetch<GetListingDetailsResponse>(
     `/api/v1/listing/${encodeURIComponent(listingId)}`,
+  );
+}
+
+type GetListingContactsResponse =
+  operations["getListingContacts"]["responses"][200]["content"]["application/json"];
+
+/**
+ * Полные телефон и email продавца (кнопка «Показать контакты»). Без входа; в деталке
+ * контакты только маской, чтобы их не было в HTML. 404: объявление снято.
+ */
+export function getListingContacts(listingId: string): Promise<GetListingContactsResponse> {
+  return apiFetch<GetListingContactsResponse>(
+    `/api/v1/listing/${encodeURIComponent(listingId)}/contacts`,
+    { cache: "no-store" },
   );
 }
 
@@ -56,6 +97,10 @@ export function getCreatedListingId(response: unknown): string | null {
 
 type Schemas = components["schemas"];
 
+export type ListingSeller = Schemas["ListingSeller"];
+export type ListingContacts = Schemas["ListingContactsResponse"];
+export type ListingSpecGroup = Schemas["ListingSpecGroup"];
+export type ListingSpecItem = Schemas["ListingSpecItem"];
 export type MyListingCard = Schemas["MyListingCardResponse"];
 export type MyListingsStatus = Schemas["MyListingsStatus"];
 export type MyListingsSort = Schemas["MyListingsSort"];

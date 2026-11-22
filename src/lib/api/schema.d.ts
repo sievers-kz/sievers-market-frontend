@@ -444,6 +444,73 @@ export interface paths {
         patch: operations["changeOrganizationContactEmail"];
         trace?: never;
     };
+    "/api/v1/customer/organizations/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Каталог организаций
+         * @description Публичный список организаций, по названию от А до Я. Авторизация не нужна.
+         *     В каталог попадают только организации, найденные в реестре и с подтверждённым владением.
+         *     Параметр `q` ищет по названию магазина и юридическому названию без учёта регистра.
+         *     В карточке есть число активных объявлений; ИИН/БИН и контактов в ней нет.
+         */
+        get: operations["getOrganizationsCatalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/organization/{organization_id}/ownership/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Подтверждение владения организацией
+         * @description Только для администратора (право `verify:organization`). Администратор вручную убедился, что организацией
+         *     владеет её заявитель. Подтвердить можно только организацию, найденную в реестре (`registry_status = verified`).
+         *     После подтверждения организация появляется в публичном каталоге продавцов. Повторный вызов безопасен.
+         */
+        post: operations["confirmOrganizationOwnership"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/customer/organization/{organization_id}/ownership/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Снятие подтверждения владения
+         * @description Только для администратора (право `verify:organization`). Снимает подтверждение владения:
+         *     организация пропадает из публичного каталога продавцов. Публиковать объявления она по-прежнему может,
+         *     если найдена в реестре. Повторный вызов безопасен.
+         */
+        post: operations["revokeOrganizationOwnership"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/reference/brand/": {
         parameters: {
             query?: never;
@@ -1214,7 +1281,25 @@ export interface paths {
         put?: never;
         /**
          * Поиск объявлений
-         * @description Полнотекстовый поиск объявлений через Meilisearch с фильтрами и пагинацией.
+         * @description Поиск и фильтрация активных объявлений. Возвращает те же карточки, что `getListingsCatalog`.
+         *
+         *     Фильтры: `text` (название, описание), `category_id`, `subcategory_id`, `city_id`, `price_min`,
+         *     `price_max` и `attributes` (ключ атрибута → значение, равенство). Фильтр по `attributes` работает
+         *     только вместе с `subcategory_id` и только по атрибутам, фильтруемым в этой подкатегории
+         *     (см. `getFilterableAttributes`); иначе `422`.
+         *
+         *     `attribute_ranges`: диапазоны для числовых атрибутов (`integer`, `float`), например
+         *     `{"year_of_issue": {"min": 2015, "max": 2020}}`; можно одну границу. Те же правила, что у
+         *     `attributes`, плюс атрибут должен быть числовым (иначе `422 listing_invalid_range_filter_error`).
+         *
+         *     Цена: `price_min`, `price_max` и сортировка по цене пока работают только среди объявлений в тенге
+         *     (`KZT`); объявления в других валютах при этом не попадают в выдачу. Без фильтра и сортировки по цене
+         *     видны все.
+         *
+         *     Сортировка `sort`: `newest`, `price_asc`, `price_desc`. Без `sort` при заданном `text` порядок по
+         *     релевантности, без `text` сначала новые. `page` от 1, `limit` от 1 до 50.
+         *
+         *     На странице может прийти меньше `limit` карточек, если объявление стало неактивным после индексации.
          */
         post: operations["searchListing"];
         delete?: never;
@@ -1232,7 +1317,10 @@ export interface paths {
         };
         /**
          * Список объявлений каталога
-         * @description Возвращает постраничный список карточек объявлений по категории/подкатегории.
+         * @description Возвращает постраничный список карточек объявлений по категории/подкатегории, сначала новые.
+         *     В карточке: дата создания (`created_at`), название организации-продавца (`organization_name`:
+         *     название магазина или, если его нет, юридическое название) и состояние (`condition`: `new` или `used`;
+         *     `null`, если у подкатегории нет такого атрибута).
          */
         get: operations["getListingsCatalog"];
         put?: never;
@@ -1281,9 +1369,45 @@ export interface paths {
         };
         /**
          * Детали объявления
-         * @description Возвращает полную карточку объявления: владелец, галерея, динамические атрибуты.
+         * @description Возвращает полную карточку активного объявления.
+         *
+         *     - `seller`: организация-продавец. Юрданные открыто (наименование, `kind` и `tax_id`: ИИН у ИП,
+         *       БИН у компании, адрес, проверка по реестру). Телефон и email только маской (`phone_masked`,
+         *       `email_masked`): полные значения отдаёт `GET /listing/{listing_id}/contacts`.
+         *     - `specs`: характеристики, готовые к показу, по группам и в порядке формы. Для вариантов
+         *       отдаётся подпись («Б/У»), для справочников название («John Deere»), для булевых «Да»/«Нет»,
+         *       числа как есть, единица измерения в `unit`. Пустые значения не попадают.
+         *     - `condition`: ключ варианта состояния (`new`, `used`) или `null`.
+         *     - `attributes`: сырые значения, как их сохранил продавец (для формы редактирования).
+         *
+         *     Неактивное, удалённое или несуществующее объявление: 404.
          */
         get: operations["getListingDetails"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/listing/{listing_id}/contacts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Контакты продавца
+         * @description Полные телефон и email продавца для кнопки «Показать контакты». Без авторизации.
+         *
+         *     В детальной карточке контакты только маской, чтобы их не было в HTML страницы.
+         *     Поле `null`, если продавец его не указал.
+         *
+         *     Неактивное, удалённое или несуществующее объявление: 404.
+         */
+        get: operations["getListingContacts"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1955,6 +2079,25 @@ export interface components {
              * Format: uuid
              */
             preview_image: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Organization Name */
+            organization_name?: string | null;
+            /** Condition */
+            condition?: string | null;
+        };
+        /**
+         * ListingContactsResponse
+         * @description Полные контакты продавца. Отдельный запрос, чтобы их не было в HTML страницы.
+         */
+        ListingContactsResponse: {
+            /** Phone */
+            phone: string | null;
+            /** Email */
+            email: string | null;
         };
         /** ListingDetailResponse */
         ListingDetailResponse: {
@@ -1968,6 +2111,18 @@ export interface components {
              * Format: uuid
              */
             owner_id: string;
+            /**
+             * Category Id
+             * Format: uuid
+             */
+            category_id: string;
+            /** Category */
+            category: string;
+            /**
+             * Subcategory Id
+             * Format: uuid
+             */
+            subcategory_id: string;
             /** Subcategory */
             subcategory: string;
             /** Title */
@@ -1986,6 +2141,16 @@ export interface components {
             attributes: {
                 [key: string]: unknown;
             };
+            /** Condition */
+            condition: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            seller: components["schemas"]["ListingSeller"];
+            /** Specs */
+            specs: components["schemas"]["ListingSpecGroup"][];
         };
         /** ListingImage */
         ListingImage: {
@@ -2003,6 +2168,8 @@ export interface components {
         ListingSearchQuery: {
             /** Text */
             text?: string | null;
+            /** Category Id */
+            category_id?: string | null;
             /** Subcategory Id */
             subcategory_id?: string | null;
             /** City Id */
@@ -2019,6 +2186,14 @@ export interface components {
                 [key: string]: string | number | boolean;
             };
             /**
+             * Attribute Ranges
+             * @default {}
+             */
+            attribute_ranges: {
+                [key: string]: components["schemas"]["NumericRange"];
+            };
+            sort?: components["schemas"]["ListingSearchSort"] | null;
+            /**
              * Page
              * @default 1
              */
@@ -2028,6 +2203,73 @@ export interface components {
              * @default 20
              */
             limit: number;
+        };
+        /**
+         * ListingSearchSort
+         * @enum {string}
+         */
+        ListingSearchSort: "newest" | "price_asc" | "price_desc";
+        /**
+         * ListingSeller
+         * @description Продавец: организация, от имени которой подано объявление.
+         *
+         *     Юрданные открытые (это сведения реестра). Телефон и email только маской: полные значения
+         *     отдаёт `GET /listing/{id}/contacts`.
+         *     `kind`: `individual` (ИП, `tax_id` это ИИН) или `company` (`tax_id` это БИН).
+         *     `is_registry_verified`: БИН/ИИН найден в реестре налогоплательщиков.
+         */
+        ListingSeller: {
+            /**
+             * Organization Id
+             * Format: uuid
+             */
+            organization_id: string;
+            /** Name */
+            name: string | null;
+            /** Legal Name */
+            legal_name: string | null;
+            /** Kind */
+            kind: string;
+            /** Form */
+            form: string | null;
+            /** Tax Id */
+            tax_id: string;
+            /** Legal Address */
+            legal_address: string | null;
+            /** Is Registry Verified */
+            is_registry_verified: boolean;
+            /** Phone Masked */
+            phone_masked: string | null;
+            /** Email Masked */
+            email_masked: string | null;
+            /** Logo Media Id */
+            logo_media_id: string | null;
+        };
+        /** ListingSpecGroup */
+        ListingSpecGroup: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Items */
+            items: components["schemas"]["ListingSpecItem"][];
+        };
+        /**
+         * ListingSpecItem
+         * @description Характеристика, готовая к показу.
+         *
+         *     `value`: подпись варианта, название из справочника, «Да»/«Нет» или число как есть
+         *     (число форматирует фронт, единица измерения отдельно в `unit`).
+         */
+        ListingSpecItem: {
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Value */
+            value: string | number;
+            /** Unit */
+            unit: string | null;
         };
         /**
          * ListingStatus
@@ -2102,12 +2344,45 @@ export interface components {
          * @enum {string}
          */
         MyListingsStatus: "active" | "inactive" | "archived";
+        /**
+         * NumericRange
+         * @description Диапазон для числового атрибута; можно задать одну границу.
+         */
+        NumericRange: {
+            /** Min */
+            min?: number | null;
+            /** Max */
+            max?: number | null;
+        };
         /** OptionItem */
         OptionItem: {
             /** Key */
             key: string;
             /** Label */
             label: string;
+        };
+        /**
+         * OrganizationCardResponse
+         * @description Публичная карточка организации в каталоге. Без ИИН/БИН и контактов: они не для открытой выдачи.
+         */
+        OrganizationCardResponse: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Name
+             * @description Название магазина, а если оно не задано, юридическое название
+             */
+            name: string;
+            /** Logo Media Id */
+            logo_media_id?: string | null;
+            /**
+             * Listings Count
+             * @description Число активных объявлений организации
+             */
+            listings_count: number;
         };
         /** OrganizationListResponse */
         OrganizationListResponse: {
@@ -2187,6 +2462,17 @@ export interface components {
         PaginatedResponse_MyListingCardResponse_: {
             /** Items */
             items: components["schemas"]["MyListingCardResponse"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Pages */
+            pages: number;
+        };
+        /** PaginatedResponse[OrganizationCardResponse] */
+        PaginatedResponse_OrganizationCardResponse_: {
+            /** Items */
+            items: components["schemas"]["OrganizationCardResponse"][];
             /** Total */
             total: number;
             /** Page */
@@ -3262,6 +3548,128 @@ export interface operations {
                 content: {
                     "application/json": unknown;
                 };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    getOrganizationsCatalog: {
+        parameters: {
+            query?: {
+                q?: string | null;
+                page?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedResponse_OrganizationCardResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirmOrganizationOwnership: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Client-Type"?: string | null;
+            };
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    revokeOrganizationOwnership: {
+        parameters: {
+            query?: never;
+            header?: {
+                "X-Client-Type"?: string | null;
+            };
+            path: {
+                organization_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Not Found */
             404: {
@@ -4975,7 +5383,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["PaginatedResponse_ListingCardResponse_"];
                 };
             };
             /** @description Unprocessable Entity */
@@ -5087,7 +5495,47 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ListingDetailResponse"] | null;
+                    "application/json": components["schemas"]["ListingDetailResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    getListingContacts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                listing_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ListingContactsResponse"];
                 };
             };
             /** @description Not Found */

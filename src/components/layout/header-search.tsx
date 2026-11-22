@@ -1,20 +1,34 @@
-import { Search } from "lucide-react";
+"use client";
 
-/** Поле поиска без функции: поиск по объявлениям будет отдельной задачей (backend#205, #206). */
-export function HeaderSearch() {
+import { usePathname, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
+
+import { parseSearchText } from "@/components/catalog/search-params";
+
+import { HeaderSearchForm } from "./header-search-form";
+
+/** На `/search` поле показывает текущий `q`; новый запрос пересоздаёт поле (`key`). */
+interface HeaderSearchProps {
+  autoFocus?: boolean;
+  onSubmitted?: () => void;
+}
+
+function HeaderSearchWithQuery({ autoFocus, onSubmitted }: HeaderSearchProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const text = pathname === "/search" ? (parseSearchText(searchParams.get("q") ?? undefined) ?? "") : "";
+  return <HeaderSearchForm key={text} initialText={text} autoFocus={autoFocus} onSubmitted={onSubmitted} />;
+}
+
+/**
+ * Поиск в шапке. `useSearchParams` на статической странице рендерится только в браузере
+ * до ближайшего `Suspense`, поэтому граница здесь, вокруг поля: остальная шапка остаётся
+ * в статическом HTML, а в нём само поле пустое (fallback).
+ */
+export function HeaderSearch({ autoFocus, onSubmitted }: HeaderSearchProps) {
   return (
-    <div className="relative min-w-0 flex-1">
-      <Search
-        aria-hidden
-        className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-muted-foreground"
-      />
-      <input
-        type="search"
-        disabled
-        aria-label="Поиск по объявлениям"
-        placeholder="Поиск по объявлениям"
-        className="h-12 w-full rounded-md bg-muted pr-4 pl-10 text-sm placeholder:text-muted-foreground disabled:cursor-not-allowed"
-      />
-    </div>
+    <Suspense fallback={<HeaderSearchForm initialText="" autoFocus={autoFocus} onSubmitted={onSubmitted} />}>
+      <HeaderSearchWithQuery autoFocus={autoFocus} onSubmitted={onSubmitted} />
+    </Suspense>
   );
 }

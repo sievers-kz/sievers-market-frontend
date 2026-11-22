@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" viewBox="0 0 390 340" preserveAspectRatio="xMidYMin slice" width="390" height="340">
+      <defs><path id="mp" d="M-10 150 H80 L195 250 L310 150 H400"/>
+        <linearGradient id="mfade" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#EDF2F0" stop-opacity="1"/><stop offset=".08" stop-color="#EDF2F0" stop-opacity="0"/><stop offset=".92" stop-color="#EDF2F0" stop-opacity="0"/><stop offset="1" stop-color="#EDF2F0" stop-opacity="1"/></linearGradient></defs>
+      <path d="M-10 150 H80 L195 250 L310 150 H400" transform="translate(0 -8)" fill="none" stroke="#A9B8B1" stroke-width="1.2" stroke-opacity="1" stroke-linejoin="round"/><path d="M-10 150 H80 L195 250 L310 150 H400" transform="translate(0 -4)" fill="none" stroke="#6F8A7E" stroke-width="1.2" stroke-opacity="0.8" stroke-linejoin="round"/><path d="M-10 150 H80 L195 250 L310 150 H400" transform="translate(0 0)" fill="none" stroke="#0B5C47" stroke-width="2.5" stroke-opacity="1" stroke-linejoin="round"/><path d="M-10 150 H80 L195 250 L310 150 H400" transform="translate(0 4)" fill="none" stroke="#6F8A7E" stroke-width="1.2" stroke-opacity="0.8" stroke-linejoin="round" stroke-dasharray="3 4"/><path d="M-10 150 H80 L195 250 L310 150 H400" transform="translate(0 8)" fill="none" stroke="#A9B8B1" stroke-width="1.2" stroke-opacity="1" stroke-linejoin="round"/>
+      <rect x="0" y="130" width="390" height="140" fill="url(#mfade)"/>
+      <path d="M195 250 V296" stroke="#0B5C47" stroke-width="2"/>
+      <circle cx="195" cy="250" r="15" fill="none" stroke="#0B5C47" stroke-opacity=".25"/>
+      <circle cx="195" cy="250" r="5" fill="#0B5C47"/>
+      <circle class="flow" r="3.2" fill="#fff" stroke="#0B5C47" stroke-width="1.4"><animateMotion dur="9s" repeatCount="indefinite" rotate="0"><mpath href="#mp"/></animateMotion><animate attributeName="opacity" values="0;1;1;0" dur="9s" repeatCount="indefinite"/></circle>
+      <circle class="flow" r="3.2" fill="#fff" stroke="#6F8A7E" stroke-width="1.4"><animateMotion dur="12s" begin="4s" repeatCount="indefinite" keyPoints="1;0" keyTimes="0;1" calcMode="linear"><mpath href="#mp"/></animateMotion><animate attributeName="opacity" values="0;1;1;0" dur="12s" begin="4s" repeatCount="indefinite"/></circle>
+    </svg>

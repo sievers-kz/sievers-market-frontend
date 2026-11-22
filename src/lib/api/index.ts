@@ -22,7 +22,12 @@ export {
 } from "./account";
 export { ERROR_CODES } from "./error-codes";
 export { uploadToPresignedUrl } from "./upload";
-export { findCategory, getCategoryTree, getSubcategoryForm } from "./catalog";
+export {
+  findCategory,
+  getCategoryTree,
+  getSubcategoryFilters,
+  getSubcategoryForm,
+} from "./catalog";
 export {
   activateListing,
   archiveListing,
@@ -30,12 +35,20 @@ export {
   deactivateListing,
   deleteListing,
   getCreatedListingId,
+  getListingContacts,
   getListingDetails,
   getListingsCatalog,
   getMyListings,
+  searchListing,
 } from "./listing";
 export type {
+  ListingSearchQuery,
+  ListingSearchSort,
   ListingStatusAction,
+  ListingContacts,
+  ListingSeller,
+  ListingSpecGroup,
+  ListingSpecItem,
   MyListingCard,
   MyListingsPage,
   MyListingsQuery,
@@ -58,10 +71,14 @@ export {
   deleteOrganization,
   getOrganization,
   getOrganizations,
+  getOrganizationsCatalog,
 } from "./organization";
 export type {
+  OrganizationCard,
   OrganizationDetails,
   OrganizationKind,
   OrganizationListItem,
+  OrganizationsCatalog,
+  OrganizationsCatalogQuery,
   RegistryStatus,
 } from "./organization";

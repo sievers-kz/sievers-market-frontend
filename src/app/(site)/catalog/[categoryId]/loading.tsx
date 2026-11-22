@@ -1,3 +1,4 @@
+import { CatalogFilterPanelSkeleton } from "@/components/catalog/catalog-filter-panel-skeleton";
 import { ListingGridSkeleton } from "@/components/catalog/listing-grid-skeleton";
 import { SubcategoryNavSkeleton } from "@/components/catalog/subcategory-nav-skeleton";
 import { CatalogListHeader } from "@/components/catalog/catalog-list-header";
@@ -12,9 +13,13 @@ export default function CatalogLoading() {
         <Skeleton className="h-8 w-48 lg:h-9" />
 
         <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-[304px_minmax(0,1fr)]">
-          <SubcategoryNavSkeleton />
+          <div className="flex min-w-0 flex-col gap-4">
+            <SubcategoryNavSkeleton />
+            <CatalogFilterPanelSkeleton />
+          </div>
 
           <div className="flex min-w-0 flex-col gap-4">
+            <Skeleton className="h-10 w-full rounded-md lg:hidden" />
             <CatalogListHeader title={<Skeleton className="h-5 w-48" />} />
             <ListingGridSkeleton view="grid" />
           </div>

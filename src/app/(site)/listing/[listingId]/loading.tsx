@@ -19,19 +19,28 @@ export default function ListingLoading() {
             <div className="order-1 aspect-[4/3] overflow-hidden rounded-2xl bg-card">
               <Skeleton className="size-full rounded-none" />
             </div>
-            <SkeletonCard className="order-3">
+            <SkeletonCard className="order-3 gap-6">
               <Skeleton className="h-7 w-40" />
-              <div className="grid grid-cols-2 gap-2 md:grid-cols-3">
+              <div className="flex flex-col gap-2">
+                <Skeleton className="h-6 w-48" />
                 {Array.from({ length: 6 }, (_, index) => (
-                  <Skeleton key={index} className="h-20 rounded-xl" />
+                  <Skeleton key={index} className="my-2 h-6" />
                 ))}
               </div>
             </SkeletonCard>
           </div>
 
-          <SkeletonCard className="order-2">
-            <Skeleton className="h-9 w-1/2" />
-          </SkeletonCard>
+          <div className="order-2 flex flex-col gap-6">
+            <SkeletonCard>
+              <Skeleton className="h-9 w-1/2" />
+            </SkeletonCard>
+            <SkeletonCard className="gap-4">
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-7 w-3/4" />
+              <Skeleton className="h-6 w-1/2" />
+              <Skeleton className="h-6 w-2/3" />
+            </SkeletonCard>
+          </div>
         </div>
       </Container>
     </main>

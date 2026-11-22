@@ -2,18 +2,25 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 
-import { GuestActions } from "./guest-actions";
+import { GuestAccountButton } from "./guest-account-button";
 import { useHeaderUser } from "./header-user-provider";
+import { MobileAccountSheet } from "./mobile-account-sheet";
 import { UserMenu } from "./user-menu";
 
 export function HeaderUserBlock() {
   const { state, showGuest } = useHeaderUser();
 
   if (state.status === "loading") {
-    return <Skeleton className="h-10 w-24 md:w-64" />;
+    return <Skeleton className="size-10 rounded-full" />;
   }
 
   const { user } = state;
-  if (user === null) return <GuestActions />;
-  return <UserMenu user={user} onLoggedOut={showGuest} />;
+  if (user === null) return <GuestAccountButton />;
+  // Ниже `md` панель справа, с `md` выпадающее меню; гость на любой ширине сразу идёт на /login.
+  return (
+    <>
+      <MobileAccountSheet user={user} onLoggedOut={showGuest} className="md:hidden" />
+      <UserMenu user={user} onLoggedOut={showGuest} className="hidden md:flex" />
+    </>
+  );
 }

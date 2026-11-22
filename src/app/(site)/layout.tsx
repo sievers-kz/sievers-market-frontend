@@ -1,18 +1,18 @@
 import type { ReactNode } from "react";
 
-import { HeaderUserProvider } from "@/components/layout/header-user-provider";
-import { SiteHeader } from "@/components/layout/site-header";
+import { SiteChrome } from "@/components/layout/site-chrome";
+import { SiteFooter } from "@/components/layout/site-footer";
 
 /**
  * Провайдер пользователя оборачивает шапку и страницы: блок аккаунта в кабинете
  * читает тот же контекст, а страница «Аккаунт» обновляет его после правки.
- * Провайдер клиентский и читает сессию в браузере, поэтому страницы остаются статическими.
+ * Футер только у страниц сайта: вход и регистрация (`(auth)`) без него.
  */
 export default function SiteLayout({ children }: { children: ReactNode }) {
   return (
-    <HeaderUserProvider>
-      <SiteHeader />
+    <SiteChrome>
       {children}
-    </HeaderUserProvider>
+      <SiteFooter />
+    </SiteChrome>
   );
 }

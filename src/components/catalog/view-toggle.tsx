@@ -6,11 +6,12 @@ import { cn } from "@/lib/utils";
 import {
   buildCatalogHref,
   type CatalogParams,
+  type CatalogScope,
   type CatalogView,
 } from "./search-params";
 
 interface ViewToggleProps {
-  categoryId: string;
+  scope: CatalogScope;
   params: CatalogParams;
 }
 
@@ -19,7 +20,7 @@ const OPTIONS: { view: CatalogView; label: string; icon: LucideIcon }[] = [
   { view: "list", label: "Списком", icon: List },
 ];
 
-export function ViewToggle({ categoryId, params }: ViewToggleProps) {
+export function ViewToggle({ scope, params }: ViewToggleProps) {
   return (
     <div className="flex gap-1 rounded-lg bg-card p-1" role="group" aria-label="Вид списка">
       {OPTIONS.map(({ view, label, icon: Icon }) => {
@@ -27,7 +28,7 @@ export function ViewToggle({ categoryId, params }: ViewToggleProps) {
         return (
           <Link
             key={view}
-            href={buildCatalogHref(categoryId, { ...params, view })}
+            href={buildCatalogHref(scope, { ...params, view })}
             aria-label={label}
             aria-current={isActive ? "true" : undefined}
             title={label}

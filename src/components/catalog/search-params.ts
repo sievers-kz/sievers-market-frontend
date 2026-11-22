@@ -1,6 +1,63 @@
+import type { ListingSearchSort } from "@/lib/api/listing";
+
 export type CatalogView = "grid" | "list";
 
-export interface CatalogParams {
+/**
+ * Сортировка из URL. Без неё у каталога «Сначала новые» (`newest` в URL каталога не пишем),
+ * у поиска «По релевантности» (там `newest` обычное значение).
+ */
+export type CatalogSort = ListingSearchSort;
+
+const SEARCH_SORTS = ["newest", "price_asc", "price_desc"] as const satisfies readonly CatalogSort[];
+
+/**
+ * Откуда список: категория каталога (`/catalog/<id>`) или поиск по тексту (`/search?q=`).
+ * От области зависят адрес ссылок, запрос и порядок по умолчанию.
+ */
+export type CatalogScope =
+  | { kind: "category"; categoryId: string }
+  | { kind: "search"; text: string };
+
+export function categoryScope(categoryId: string): CatalogScope {
+  return { kind: "category", categoryId };
+}
+
+/** Допустимые значения `sort` в URL области: у каталога `newest` и есть «без сортировки». */
+export function scopeSorts(kind: CatalogScope["kind"]): readonly CatalogSort[] {
+  return kind === "search" ? SEARCH_SORTS : SEARCH_SORTS.filter((sort) => sort !== "newest");
+}
+
+/** Префикс параметров атрибутов: `f.condition=used`, `f.brand=<uuid>`. */
+export const ATTRIBUTE_PARAM_PREFIX = "f.";
+
+/** Границы числового атрибута: `f.year_of_issue.min=2015`, `f.engine_power.max=200`. */
+const RANGE_MIN_SUFFIX = ".min";
+const RANGE_MAX_SUFFIX = ".max";
+
+/** Диапазон числового атрибута; есть хотя бы одна граница. */
+export interface NumberRange {
+  min?: number;
+  max?: number;
+}
+
+export interface CatalogFilters {
+  priceMin?: number;
+  priceMax?: number;
+  cityId?: string;
+  sort?: CatalogSort;
+  /**
+   * Атрибуты подкатегории: ключ → значение из URL (у `boolean` это `"true"`).
+   * После `sanitizeCatalogParams` только ключи и значения, разрешённые подкатегорией.
+   */
+  attributes?: Readonly<Record<string, string>>;
+  /**
+   * Диапазоны числовых атрибутов (`integer`, `float`): ключ → границы, `min ≤ max`.
+   * После `sanitizeCatalogParams` только числовые атрибуты подкатегории.
+   */
+  ranges?: Readonly<Record<string, NumberRange>>;
+}
+
+export interface CatalogParams extends CatalogFilters {
   subcategoryId?: string;
   page: number;
   view: CatalogView;
@@ -8,26 +65,167 @@ export interface CatalogParams {
 
 type RawSearchParams = Record<string, string | string[] | undefined>;
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function isUuid(value: string | undefined): value is string {
+  return value !== undefined && UUID_RE.test(value);
+}
+
 function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-/** Разбор `?subcategory=&page=&view=`. Некорректные значения заменяются значениями по умолчанию. */
-export function parseCatalogParams(searchParams: RawSearchParams): CatalogParams {
+/** Цена: только цифры, целое ≥ 0 в пределах безопасного целого. Иначе `undefined`. */
+export function parsePrice(value: string | undefined): number | undefined {
+  const raw = value?.trim();
+  if (!raw || !/^\d+$/.test(raw)) return undefined;
+  const price = Number(raw);
+  return Number.isSafeInteger(price) ? price : undefined;
+}
+
+/** Не больше 6 знаков после точки: `String(number)` их не переводит в запись с `e`. */
+const RANGE_BOUND_RE = /^\d+(\.\d{1,6})?$/;
+
+/**
+ * Граница числового атрибута: только цифры и, для дробных, точка (`12.5`), без знака.
+ * Целая часть в пределах безопасного целого. Иначе `undefined`. Целое ли значение,
+ * проверяет `sanitizeCatalogParams` по типу атрибута.
+ */
+export function parseRangeBound(value: string | undefined): number | undefined {
+  const raw = value?.trim();
+  if (!raw || !RANGE_BOUND_RE.test(raw)) return undefined;
+  const bound = Number(raw);
+  return Number.isSafeInteger(Math.trunc(bound)) ? bound : undefined;
+}
+
+/** Обе границы есть и `min > max` — меняем местами; нет ни одной — `undefined`. */
+export function orderRange(min: number | undefined, max: number | undefined): NumberRange | undefined {
+  if (min === undefined && max === undefined) return undefined;
+  if (min !== undefined && max !== undefined && min > max) return { min: max, max: min };
+  return { min, max };
+}
+
+function parseSort(value: string | undefined, kind: CatalogScope["kind"]): CatalogSort | undefined {
+  return scopeSorts(kind).find((sort) => sort === value);
+}
+
+/** Длина `q`: бэкенд её не ограничивает, но длинная строка ломает заголовок и адрес. */
+export const SEARCH_TEXT_MAX_LENGTH = 200;
+
+/** Текст поиска из `q`: пробелы по краям обрезаются и схлопываются; пустой — `undefined`. */
+export function parseSearchText(value: string | string[] | undefined): string | undefined {
+  const text = first(value)?.replace(/\s+/g, " ").trim().slice(0, SEARCH_TEXT_MAX_LENGTH).trim();
+  return text || undefined;
+}
+
+/**
+ * Разбор адреса каталога: `subcategory`, `page`, `view`, `price_min`, `price_max`, `city`,
+ * `sort`, `f.<ключ>`, `f.<ключ>.min`, `f.<ключ>.max`. Некорректные значения молча отбрасываются (или заменяются значениями
+ * по умолчанию). Атрибуты здесь проверяются только по форме: допустимые ключи и значения
+ * знает `getSubcategoryFilters`, их отсекает `sanitizeCatalogParams` на странице.
+ * `kind` решает, какие значения `sort` допустимы (`scopeSorts`). Текст поиска (`q`) разбирает
+ * `parseSearchText`.
+ */
+export function parseCatalogParams(
+  searchParams: RawSearchParams,
+  kind: CatalogScope["kind"] = "category",
+): CatalogParams {
   const rawPage = Number(first(searchParams.page));
+  const rawSubcategory = first(searchParams.subcategory);
+  const rawCity = first(searchParams.city);
+
+  let priceMin = parsePrice(first(searchParams.price_min));
+  let priceMax = parsePrice(first(searchParams.price_max));
+  if (priceMin !== undefined && priceMax !== undefined && priceMin > priceMax) {
+    [priceMin, priceMax] = [priceMax, priceMin];
+  }
+
+  const attributes: Record<string, string> = {};
+  const rawRanges: Record<string, { min?: number; max?: number }> = {};
+  for (const [name, value] of Object.entries(searchParams)) {
+    if (!name.startsWith(ATTRIBUTE_PARAM_PREFIX)) continue;
+    const key = name.slice(ATTRIBUTE_PARAM_PREFIX.length);
+    const bound = key.endsWith(RANGE_MIN_SUFFIX) ? "min" : key.endsWith(RANGE_MAX_SUFFIX) ? "max" : null;
+    if (bound) {
+      const rangeKey = key.slice(0, -RANGE_MIN_SUFFIX.length);
+      const boundValue = parseRangeBound(first(value));
+      if (rangeKey && boundValue !== undefined) {
+        rawRanges[rangeKey] = { ...rawRanges[rangeKey], [bound]: boundValue };
+      }
+      continue;
+    }
+    const attributeValue = first(value)?.trim();
+    if (key && attributeValue) attributes[key] = attributeValue;
+  }
+
+  const ranges: Record<string, NumberRange> = {};
+  for (const [key, { min, max }] of Object.entries(rawRanges)) {
+    const range = orderRange(min, max);
+    if (range) ranges[key] = range;
+  }
+
   return {
-    subcategoryId: first(searchParams.subcategory) || undefined,
+    // Подкатегорию по форме не проверяем: чужой id даёт 404 на странице, как раньше.
+    subcategoryId: rawSubcategory || undefined,
     page: Number.isInteger(rawPage) && rawPage >= 1 ? rawPage : 1,
     view: first(searchParams.view) === "list" ? "list" : "grid",
+    priceMin,
+    priceMax,
+    cityId: isUuid(rawCity) ? rawCity : undefined,
+    sort: parseSort(first(searchParams.sort), kind),
+    attributes,
+    ranges,
   };
 }
 
-/** Ссылка на каталог. Значения по умолчанию (`page=1`, `view=grid`) в URL не пишем. */
-export function buildCatalogHref(categoryId: string, params: CatalogParams): string {
+/** Есть ли фильтр (цена, город, атрибут, диапазон). Подкатегория и сортировка фильтром не считаются. */
+export function hasCatalogFilters(params: CatalogFilters): boolean {
+  return (
+    params.priceMin !== undefined ||
+    params.priceMax !== undefined ||
+    params.cityId !== undefined ||
+    Object.keys(params.attributes ?? {}).length > 0 ||
+    Object.keys(params.ranges ?? {}).length > 0
+  );
+}
+
+/** Нужен ли поиск (`searchListing`) вместо обычного списка (`getListingsCatalog`). */
+export function needsCatalogSearch(params: CatalogFilters): boolean {
+  return hasCatalogFilters(params) || params.sort !== undefined;
+}
+
+/** Без цены, города, атрибутов, диапазонов и сортировки, на первой странице; подкатегория и вид остаются. */
+export function resetCatalogFilters(params: CatalogParams): CatalogParams {
+  return { subcategoryId: params.subcategoryId, page: 1, view: params.view };
+}
+
+/** Другая подкатегория: атрибуты и диапазоны сбрасываются (у неё свои), цена, город и сортировка остаются. */
+export function withSubcategory(params: CatalogParams, subcategoryId: string | undefined): CatalogParams {
+  return { ...params, subcategoryId, attributes: undefined, ranges: undefined, page: 1 };
+}
+
+/**
+ * Ссылка на список области: `/catalog/<id>?…` или `/search?q=…&…`. Значения по умолчанию
+ * (`page=1`, `view=grid`, без сортировки) не пишем.
+ */
+export function buildCatalogHref(scope: CatalogScope, params: CatalogParams): string {
   const query = new URLSearchParams();
+  if (scope.kind === "search") query.set("q", scope.text);
   if (params.subcategoryId) query.set("subcategory", params.subcategoryId);
+  if (params.priceMin !== undefined) query.set("price_min", String(params.priceMin));
+  if (params.priceMax !== undefined) query.set("price_max", String(params.priceMax));
+  if (params.cityId) query.set("city", params.cityId);
+  if (params.sort) query.set("sort", params.sort);
+  for (const [key, value] of Object.entries(params.attributes ?? {})) {
+    query.set(`${ATTRIBUTE_PARAM_PREFIX}${key}`, value);
+  }
+  for (const [key, { min, max }] of Object.entries(params.ranges ?? {})) {
+    if (min !== undefined) query.set(`${ATTRIBUTE_PARAM_PREFIX}${key}${RANGE_MIN_SUFFIX}`, String(min));
+    if (max !== undefined) query.set(`${ATTRIBUTE_PARAM_PREFIX}${key}${RANGE_MAX_SUFFIX}`, String(max));
+  }
   if (params.page > 1) query.set("page", String(params.page));
   if (params.view !== "grid") query.set("view", params.view);
   const search = query.toString();
-  return `/catalog/${categoryId}${search ? `?${search}` : ""}`;
+  const path = scope.kind === "search" ? "/search" : `/catalog/${scope.categoryId}`;
+  return `${path}${search ? `?${search}` : ""}`;
 }

@@ -1,98 +1,127 @@
 "use client";
 
 import Link from "next/link";
-import { useId, useState } from "react";
+import { NavigationMenu } from "radix-ui";
+import { useEffect, useId, useRef, useState } from "react";
 
-import { buildCatalogHref } from "@/components/catalog/search-params";
-import type { CategoryTree } from "@/lib/api/catalog";
 import { cn } from "@/lib/utils";
+
+import { catalogCategoryHref, catalogSubcategoryHref, type CatalogMenuTree } from "./catalog-menu-tree";
+import { Container } from "./container";
+
+/** Сколько подкатегорий показывать под категорией; остальные за ссылкой «Смотреть все». */
+const SUBCATEGORY_LIMIT = 6;
+/** Задержка переключения рубрики при наведении, чтобы вкладки не мигали при проходе курсора. */
+const TAB_HOVER_DELAY_MS = 150;
 
 const LINK_FOCUS = "rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none";
 
 /**
- * Содержимое десктопной панели каталога: слева рубрики (переключают правую часть),
- * справа категории выбранной рубрики колонками со ссылками на подкатегории.
+ * Содержимое панели «Каталога» (с `lg`): сверху вкладки рубрик, под ними категории выбранной рубрики
+ * колонками (3 на `md`, 4 на `lg`) с подкатегориями. Три уровня: рубрика → категория → подкатегория.
+ * Ссылки — `NavigationMenu.Link`, поэтому выбор ссылки закрывает меню.
  */
-export function CatalogMenuPanel({
-  rubrics,
-  onNavigate,
-}: {
-  rubrics: CategoryTree;
-  onNavigate: () => void;
-}) {
+export function CatalogMenuPanel({ rubrics }: { rubrics: CatalogMenuTree }) {
   const [activeId, setActiveId] = useState(rubrics[0]?.id);
+  const hoverTimer = useRef<number | undefined>(undefined);
+  const baseId = useId();
   const active = rubrics.find((rubric) => rubric.id === activeId) ?? rubrics[0];
-  const contentId = useId();
+
+  useEffect(() => () => window.clearTimeout(hoverTimer.current), []);
 
   if (!active) return null;
 
+  const tabId = (id: string) => `${baseId}-tab-${id}`;
+  const panelId = `${baseId}-panel`;
+
   return (
-    <div className="flex min-h-0 flex-1">
-      <ul aria-label="Рубрики" className="flex w-76 shrink-0 flex-col gap-1 overflow-y-auto border-r p-2">
+    <Container className="flex flex-col gap-6 py-6">
+      <div role="tablist" aria-label="Рубрики" className="flex gap-6 overflow-x-auto border-b">
         {rubrics.map((rubric) => {
           const isActive = rubric.id === active.id;
-          const select = () => setActiveId(rubric.id);
           return (
-            <li key={rubric.id}>
-              <button
-                type="button"
-                aria-controls={contentId}
-                aria-current={isActive ? "true" : undefined}
-                onClick={select}
-                onFocus={select}
-                onMouseEnter={select}
-                className={cn(
-                  "w-full rounded-lg px-4 py-2 text-left text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
-                  isActive ? "bg-accent text-accent-foreground" : "hover:bg-muted",
-                )}
-              >
-                {rubric.name}
-              </button>
-            </li>
+            <button
+              key={rubric.id}
+              id={tabId(rubric.id)}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              aria-controls={panelId}
+              onClick={() => setActiveId(rubric.id)}
+              onFocus={() => setActiveId(rubric.id)}
+              onMouseEnter={() => {
+                window.clearTimeout(hoverTimer.current);
+                hoverTimer.current = window.setTimeout(() => setActiveId(rubric.id), TAB_HOVER_DELAY_MS);
+              }}
+              onMouseLeave={() => window.clearTimeout(hoverTimer.current)}
+              className={cn(
+                "-mb-px border-b-2 pb-2 text-sm font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+                isActive
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {rubric.name}
+            </button>
           );
         })}
-      </ul>
+      </div>
 
       <div
-        id={contentId}
-        role="region"
-        aria-label={active.name}
-        className="grid min-w-0 flex-1 grid-cols-3 content-start gap-6 overflow-y-auto p-6"
+        id={panelId}
+        role="tabpanel"
+        aria-labelledby={tabId(active.id)}
+        className="grid grid-cols-3 gap-x-8 gap-y-8 lg:grid-cols-4"
       >
-        {active.categories.map((category) => (
-          <div key={category.id} className="flex min-w-0 flex-col gap-2">
-            <Link
-              href={buildCatalogHref(category.id, { page: 1, view: "grid" })}
-              onClick={onNavigate}
-              className={cn("self-start font-semibold transition-colors hover:text-primary", LINK_FOCUS)}
-            >
-              {category.name}
-            </Link>
-            {category.subcategories.length > 0 && (
-              <ul className="flex flex-col gap-2">
-                {category.subcategories.map((subcategory) => (
-                  <li key={subcategory.id}>
-                    <Link
-                      href={buildCatalogHref(category.id, {
-                        subcategoryId: subcategory.id,
-                        page: 1,
-                        view: "grid",
-                      })}
-                      onClick={onNavigate}
-                      className={cn(
-                        "text-sm text-muted-foreground transition-colors hover:text-primary",
-                        LINK_FOCUS,
-                      )}
-                    >
-                      {subcategory.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        ))}
+        {active.categories.map((category) => {
+          const categoryHref = catalogCategoryHref(category.id);
+          const shown = category.subcategories.slice(0, SUBCATEGORY_LIMIT);
+          const hasMore = category.subcategories.length > SUBCATEGORY_LIMIT;
+          return (
+            <div key={category.id} className="flex min-w-0 flex-col gap-2">
+              <NavigationMenu.Link asChild>
+                <Link
+                  href={categoryHref}
+                  className={cn("self-start font-semibold transition-colors hover:text-primary", LINK_FOCUS)}
+                >
+                  {category.name}
+                </Link>
+              </NavigationMenu.Link>
+              {shown.length > 0 && (
+                <ul className="flex flex-col gap-2">
+                  {shown.map((subcategory) => (
+                    <li key={subcategory.id}>
+                      <NavigationMenu.Link asChild>
+                        <Link
+                          href={catalogSubcategoryHref(category.id, subcategory.id)}
+                          className={cn(
+                            "text-sm text-muted-foreground transition-colors hover:text-primary",
+                            LINK_FOCUS,
+                          )}
+                        >
+                          {subcategory.name}
+                        </Link>
+                      </NavigationMenu.Link>
+                    </li>
+                  ))}
+                  {hasMore && (
+                    <li>
+                      <NavigationMenu.Link asChild>
+                        <Link
+                          href={categoryHref}
+                          className={cn("text-sm font-medium text-primary hover:underline", LINK_FOCUS)}
+                        >
+                          Смотреть все
+                        </Link>
+                      </NavigationMenu.Link>
+                    </li>
+                  )}
+                </ul>
+              )}
+            </div>
+          );
+        })}
       </div>
-    </div>
+    </Container>
   );
 }

@@ -52,6 +52,8 @@
   - Удалены: `CatalogMegaMenu`, `CatalogMenuMobile`, `MinimalHeader`, `GuestActions`, временная страница подбора `/dev/logo`.
 - Страницы /about и /support: заглушки, содержимое нужно добавить до/после запуска. Сейчас H1 и «Раздел в разработке», `noindex`, в `sitemap.ts` не добавлены.
 
+- Главная: спецификация `docs/pages/home.md` с эталонами `docs/pages/home-assets/` (SVG hero, карта, снимки макетов). Реализации пока нет; в PR спецификации только документы.
+
 ## Решения, которые не видны из кода
 - **Сессия и прокси.** Бэкенд ставит cookie без `Domain`. Браузер ходит на свой origin `/api/v1/...`, rewrite в `next.config.ts` ведёт на `BACKEND_URL` (серверная переменная, читается при сборке; нужна в `.env.local` и в Vercel). Путь ровно `/api/v1`: refresh-cookie стоит с `Path=/api/v1/iam`. Нужен `skipTrailingSlashRedirect` (у части путей API слэш на конце). Сервер Next ходит на `BACKEND_URL` напрямую и пробрасывает `Cookie`.
 - **Токен на сервере не обновляется** (Server Component не ставит cookie): `getCurrentUser()` при 401 даёт `null`. Single-flight refresh работает только в браузере. Серверное обновление через `proxy.ts` отложено.

@@ -9,7 +9,7 @@ import { HeroLines } from "./hero-lines";
 import { HeroSearch } from "./hero-search";
 
 interface HomeHeroProps {
-  /** Первая категория рубрики «Сельхозтехника»; `null` — кнопки каталога нет. */
+  /** Первая категория рубрики «Техника» (`HERO_CATALOG_RUBRIC`); `null` — кнопки каталога нет. */
   catalogHref: string | null;
   chips: readonly { label: string; href: string }[];
 }

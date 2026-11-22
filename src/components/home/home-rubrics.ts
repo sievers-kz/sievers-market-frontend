@@ -15,8 +15,8 @@ export interface HomeRubric {
 export const HOME_RUBRICS: readonly HomeRubric[] = [
   {
     key: "agrotechnika",
-    name: "Сельхозтехника",
-    description: "Тракторы, комбайны, сеялки и оборудование",
+    name: "Техника",
+    description: "Тракторы, комбайны, грузовики и оборудование",
     icon: Tractor,
   },
   {
@@ -36,7 +36,7 @@ export const HOME_RUBRICS: readonly HomeRubric[] = [
 ];
 
 /** Рубрика, на которую ведёт «Смотреть каталог» в hero. */
-export const HERO_CATALOG_RUBRIC = "Сельхозтехника";
+export const HERO_CATALOG_RUBRIC = "Техника";
 
 /** Категории-чипы под поиском hero. Нет такой категории в дереве — нет чипа. */
 export const HERO_CHIP_CATEGORIES = ["Тракторы", "Комбайны", "Сеялки", "Опрыскиватели"] as const;

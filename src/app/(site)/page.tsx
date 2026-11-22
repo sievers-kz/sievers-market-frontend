@@ -12,7 +12,7 @@ import { SITE_DESCRIPTION } from "@/lib/site";
 
 export const revalidate = 60;
 
-const HOME_TITLE = "Sievers: маркетплейс сельхозтехники и оборудования в Казахстане";
+const HOME_TITLE = "Sievers: маркетплейс для агробизнеса в Казахстане";
 
 export const metadata: Metadata = {
   title: { absolute: HOME_TITLE },

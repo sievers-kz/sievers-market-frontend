@@ -1,45 +1,22 @@
-"use client";
-
 import { Search } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useRef, useState, type FormEvent } from "react";
 
-import {
-  buildCatalogHref,
-  parseSearchText,
-  SEARCH_TEXT_MAX_LENGTH,
-} from "@/components/catalog/search-params";
+import { SEARCH_TEXT_MAX_LENGTH } from "@/components/catalog/search-params";
 import { cn } from "@/lib/utils";
 
 /**
- * Поле поиска в hero. Как поиск в шапке (`HeaderSearchForm`): Enter или «Найти» ведут на
- * `/search?q=<текст>`, пробелы по краям обрезаются, пустой запрос не отправляется.
- * Без JavaScript форма уходит обычным GET на `/search` (там `q` разбирается так же).
+ * Поле поиска в hero: обычная форма GET на `/search?q=<текст>`, без клиентского кода.
+ * Пустой запрос и запрос из одних пробелов не отправляются (`required` + `pattern`);
+ * пробелы по краям обрезает разбор `q` на `/search` (`parseSearchText`), как у поиска в шапке.
  * Размеры: десктоп высота 64, кнопка 48; телефон 56 и 40.
  */
 export function HeroSearch({ size, className }: { size: "desktop" | "mobile"; className?: string }) {
-  const router = useRouter();
-  const inputRef = useRef<HTMLInputElement>(null);
-  const [value, setValue] = useState("");
   const desktop = size === "desktop";
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const text = parseSearchText(value);
-    if (!text) {
-      setValue("");
-      inputRef.current?.focus();
-      return;
-    }
-    router.push(buildCatalogHref({ kind: "search", text }, { page: 1, view: "grid" }));
-  }
 
   return (
     <form
       role="search"
-      action="/search"
       method="get"
-      onSubmit={handleSubmit}
+      action="/search"
       className={cn(
         "flex items-center gap-2 rounded-2xl bg-background shadow-[0_8px_24px_rgb(27_43_38/0.08)] focus-within:ring-2 focus-within:ring-primary/30",
         desktop ? "h-16 pr-2 pl-6" : "h-14 pr-2 pl-4",
@@ -48,11 +25,10 @@ export function HeroSearch({ size, className }: { size: "desktop" | "mobile"; cl
     >
       <Search aria-hidden className="size-4 shrink-0 text-muted-foreground" />
       <input
-        ref={inputRef}
         type="search"
         name="q"
-        value={value}
-        onChange={(event) => setValue(event.target.value)}
+        required
+        pattern=".*\S.*"
         maxLength={SEARCH_TEXT_MAX_LENGTH}
         enterKeyHint="search"
         autoComplete="off"

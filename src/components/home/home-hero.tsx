@@ -29,7 +29,7 @@ export function HomeHero({ catalogHref, chips }: HomeHeroProps) {
         <HeroLines variant="desktop" />
         <div className="relative left-1/2 h-[560px] w-[1440px] -translate-x-1/2">
           <p className="absolute top-20 left-[176px] text-[13px]/5 font-semibold tracking-[1.5px] text-primary">
-            МАРКЕТПЛЕЙС СЕЛЬХОЗТЕХНИКИ
+            МАРКЕТПЛЕЙС ДЛЯ АГРОБИЗНЕСА
           </p>
           <p className="absolute top-20 right-[176px] text-right text-[13px]/5 font-semibold tracking-[1.5px] text-primary">
             СДЕЛКИ НАПРЯМУЮ ПО ВСЕМУ КАЗАХСТАНУ
@@ -69,7 +69,7 @@ export function HomeHero({ catalogHref, chips }: HomeHeroProps) {
         <HeroLines variant="mobile" />
         <div className="relative mx-auto max-w-[640px]">
           <p className="text-[11px]/4 font-semibold tracking-[1.2px] text-primary">
-            МАРКЕТПЛЕЙС СЕЛЬХОЗТЕХНИКИ
+            МАРКЕТПЛЕЙС ДЛЯ АГРОБИЗНЕСА
           </p>
           {/* Второй h1 в DOM, но в каждый момент виден один: блоки переключаются `display: none`. */}
           <h1 className="mt-2 text-[28px]/9 font-bold tracking-tight">

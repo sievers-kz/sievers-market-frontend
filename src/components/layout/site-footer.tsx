@@ -25,7 +25,7 @@ export function SiteFooter() {
         <div className="col-span-2 flex flex-col items-start gap-4 md:col-span-1">
           <SiteLogo />
           <p className="max-w-[320px] text-sm text-muted-foreground">
-            Маркетплейс сельхозтехники и оборудования в Казахстане
+            Маркетплейс для агробизнеса в Казахстане
           </p>
         </div>
 

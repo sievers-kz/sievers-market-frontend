@@ -4,7 +4,7 @@ export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://market.siev
 export const SITE_NAME = "Sievers Market";
 
 export const SITE_DESCRIPTION =
-  "Маркетплейс сельскохозяйственной техники и оборудования в Казахстане";
+  "Покупайте и продавайте сельхозтехнику, оборудование и другие товары для агробизнеса напрямую у организаций по всему Казахстану";
 
 /**
  * Индексировать можно только production-сборку Vercel. Staging (`test.market`) и preview

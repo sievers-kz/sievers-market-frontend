@@ -25,8 +25,11 @@ export function PostListingButton({
   /** Для `outline`: текст на любой ширине (мобильное меню), а не только с `md`. */
   alwaysShowLabel?: boolean;
   onClick?: () => void;
-  /** `cta` — заливка cta, h-12 (как было); `outline` — контурная primary, h-10, «+» и текст (на lg–xl только «+»), для шапки. */
-  variant?: "cta" | "outline";
+  /**
+   * `cta` — заливка cta, h-12 (как было); `outline` — контурная primary, h-10, «+» и текст (на lg–xl только «+»), для шапки;
+   * `primary` — заливка primary, h-12, «+» (на телефоне без «+») и текст, для главной.
+   */
+  variant?: "cta" | "outline" | "primary";
 }) {
   const { state } = useHeaderUser();
   const isGuest = state.status === "ready" && state.user === null;
@@ -48,6 +51,17 @@ export function PostListingButton({
           <span className={alwaysShowLabel ? undefined : "hidden md:inline lg:hidden xl:inline"}>
             Подать объявление
           </span>
+        </Link>
+      </Button>
+    );
+  }
+
+  if (variant === "primary") {
+    return (
+      <Button asChild size="lg" className={cn("px-4 sm:px-6", className)}>
+        <Link href={href} onClick={onClick}>
+          <Plus aria-hidden className="max-sm:hidden" />
+          Подать объявление
         </Link>
       </Button>
     );

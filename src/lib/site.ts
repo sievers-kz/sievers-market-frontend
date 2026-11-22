@@ -13,3 +13,8 @@ export const SITE_DESCRIPTION =
 export function isIndexable(): boolean {
   return process.env.VERCEL_ENV === "production";
 }
+
+/** Контакты в футере сайта. */
+export const CONTACT_TELEGRAM_URL = "https://t.me/asynciox";
+export const CONTACT_TELEGRAM_LABEL = "@asynciox";
+export const CONTACT_EMAIL = "iam.bissenov@gmail.com";

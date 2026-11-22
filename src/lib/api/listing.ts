@@ -23,14 +23,20 @@ type SearchListingResponse =
   operations["searchListing"]["responses"][200]["content"]["application/json"];
 
 /**
- * Поиск с фильтрами (Meilisearch). POST, поэтому без кэша. Публичный, cookie не нужны.
+ * Поиск с фильтрами (Meilisearch). POST, по умолчанию без кэша. Публичный, cookie не нужны.
+ * `cacheOptions.revalidate` включает кэш Next на заданное число секунд (главная: свежие объявления).
  * 422: недопустимый ключ атрибута, атрибуты без подкатегории, неверный uuid.
  */
-export function searchListing(body: ListingSearchQuery): Promise<SearchListingResponse> {
+export function searchListing(
+  body: ListingSearchQuery,
+  cacheOptions?: { revalidate: number },
+): Promise<SearchListingResponse> {
   return apiFetch<SearchListingResponse>("/api/v1/listing/search", {
     method: "POST",
     body,
-    cache: "no-store",
+    ...(cacheOptions
+      ? { next: { revalidate: cacheOptions.revalidate } }
+      : { cache: "no-store" as const }),
     forwardCookies: false,
   });
 }

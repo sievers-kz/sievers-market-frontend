@@ -5,7 +5,7 @@
 **Живая версия:** [market.sievers.kz](https://market.sievers.kz)
 
 ## Скриншоты
-Главная, каталог и форма подачи объявления (production).
+Главная, каталог и форма подачи объявления.
 
 ![Главная](docs/screenshots/home.png)
 

@@ -24,6 +24,8 @@ export const metadata: Metadata = {
     title: SITE_NAME,
     description: SITE_DESCRIPTION,
   },
+  // Картинку (opengraph-image.png) берём из файла; Telegram и X ждут явный тип карточки.
+  twitter: { card: "summary_large_image" },
   // Staging и preview закрыты от индексации; production без запрета.
   robots: isIndexable() ? undefined : { index: false, follow: false },
 };

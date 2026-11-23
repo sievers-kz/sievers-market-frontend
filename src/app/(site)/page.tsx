@@ -8,7 +8,7 @@ import { HomeRubricsSection } from "@/components/home/home-rubrics-section";
 import { HowItWorks } from "@/components/home/how-it-works";
 import { getCategoryTree } from "@/lib/api";
 import type { CategoryTree } from "@/lib/api/catalog";
-import { SITE_DESCRIPTION } from "@/lib/site";
+import { OG_IMAGE, SITE_DESCRIPTION, SITE_NAME } from "@/lib/site";
 
 export const revalidate = 60;
 
@@ -17,7 +17,14 @@ const HOME_TITLE = "Sievers: маркетплейс для агробизнес�
 export const metadata: Metadata = {
   title: { absolute: HOME_TITLE },
   description: SITE_DESCRIPTION,
-  openGraph: { title: HOME_TITLE, description: SITE_DESCRIPTION },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    locale: "ru_RU",
+    title: HOME_TITLE,
+    description: SITE_DESCRIPTION,
+    images: [OG_IMAGE],
+  },
 };
 
 /** Ошибка дерева не роняет главную: рубрики становятся заглушками, кнопка каталога и чипы скрываются. */

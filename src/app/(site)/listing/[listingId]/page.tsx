@@ -12,6 +12,7 @@ import { ListingSpecs } from "@/components/listing/listing-specs";
 import { ListingSummaryCard } from "@/components/listing/listing-summary-card";
 import { ListingTitleCard } from "@/components/listing/listing-title-card";
 import { getListingDetails, getMediaUrl, isApiError } from "@/lib/api";
+import { OG_IMAGE } from "@/lib/site";
 
 const DESCRIPTION_META_LENGTH = 160;
 
@@ -55,7 +56,7 @@ export async function generateMetadata({
       url: `/listing/${listingId}`,
       images: listing.gallery[0]
         ? [{ url: getMediaUrl(listing.gallery[0]) }]
-        : undefined,
+        : [OG_IMAGE],
     },
   };
 }

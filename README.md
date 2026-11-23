@@ -4,6 +4,15 @@
 
 **Живая версия:** [market.sievers.kz](https://market.sievers.kz)
 
+## Скриншоты
+Главная, каталог и форма подачи объявления (production).
+
+![Главная](docs/screenshots/home.png)
+
+![Каталог: комбайны](docs/screenshots/catalog.png)
+
+![Подача объявления с превью карточки](docs/screenshots/new-listing.png)
+
 ## Возможности
 - Главная, каталог по рубрикам и подкатегориям, поиск по сайту.
 - Фильтры каталога: цена, город, характеристики по категории (справочники, числовые диапазоны), сортировка, пагинация.
@@ -36,7 +45,7 @@ docs/pages/      спецификации экранов
 - **SEO.** `robots.txt` и `sitemap.xml`, canonical, Open Graph и иконки через файловые соглашения Next. Staging и preview закрыты от индексации (`Disallow: /`), индексируется только production.
 
 ## Окружения и процесс
-- Два окружения на Vercel: **production** (ветка `main`, `market.sievers.kz`) и **staging** (ветка `dev`), закрытый от поисковиков.
+- Два окружения на Vercel: **production** (ветка `main`, `market.sievers.kz`) и **staging** (ветка `dev`), недоступный извне: Vercel просит войти в аккаунт, поэтому по ссылке на staging посторонний попадёт на страницу входа Vercel, а не на сайт. Дополнительно staging закрыт от поисковиков.
 - Фича делается в ветке `feature/<экран>` от `dev`, затем PR в `dev`; релиз — PR из `dev` в `main`.
 - Перед PR проходят `typecheck`, `lint` и `build`.
 

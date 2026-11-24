@@ -1,4 +1,5 @@
 import { CircleAlert, Info, PencilLine } from "lucide-react";
+import Link from "next/link";
 
 import type { OrganizationDetails } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -14,25 +15,37 @@ const T = ORGANIZATION_DETAIL_TEXT.notice;
 export function OrganizationNotice({ organization }: { organization: OrganizationDetails }) {
   const notice = getNotice(organization);
   if (!notice) return null;
-  const { Icon, iconClass, text } = notice;
+  const { Icon, iconClass, text, supportLink } = notice;
 
   return (
     <div role="status" className="flex items-start gap-4 rounded-2xl bg-card p-6">
       <Icon aria-hidden className={cn("size-6 shrink-0", iconClass)} />
-      <p className="min-w-0 flex-1">{text}</p>
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <p>{text}</p>
+        {supportLink && (
+          <Link href="/support" className="font-medium text-primary hover:underline">
+            {T.notFoundSupport}
+          </Link>
+        )}
+      </div>
     </div>
   );
 }
 
 function getNotice({ registry_status: status, missing_fields: missing }: OrganizationDetails) {
   if (status === "pending") {
-    return { Icon: Info, iconClass: "text-muted-foreground", text: T.pending };
+    return { Icon: Info, iconClass: "text-muted-foreground", text: T.pending, supportLink: false };
   }
   if (status === "not_found") {
-    return { Icon: CircleAlert, iconClass: "text-destructive", text: T.not_found };
+    return {
+      Icon: CircleAlert,
+      iconClass: "text-destructive",
+      text: T.not_found,
+      supportLink: true,
+    };
   }
   if (missing && missing.length > 0) {
-    return { Icon: PencilLine, iconClass: "text-cta", text: T.missingFields };
+    return { Icon: PencilLine, iconClass: "text-cta", text: T.missingFields, supportLink: false };
   }
   return null;
 }

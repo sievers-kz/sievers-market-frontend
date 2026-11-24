@@ -130,13 +130,26 @@ export function EditOrganizationFieldDialog({
           <DialogTitle>{label}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="flex flex-col gap-4">
-          <FormField id={inputId} label={label} required error={errors.value?.message}>
+          <FormField
+            id={inputId}
+            label={label}
+            required
+            error={errors.value?.message}
+            hint={field === "contact_phone" ? T.phoneHint : undefined}
+          >
             <Input
               id={inputId}
               {...INPUTS[field]}
               aria-required
               aria-invalid={Boolean(errors.value)}
-              aria-describedby={errors.value ? `${inputId}-error` : undefined}
+              aria-describedby={
+                [
+                  field === "contact_phone" ? `${inputId}-hint` : null,
+                  errors.value ? `${inputId}-error` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" ") || undefined
+              }
               {...register("value")}
             />
           </FormField>
